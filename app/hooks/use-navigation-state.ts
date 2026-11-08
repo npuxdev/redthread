@@ -18,15 +18,41 @@ export interface NavigationState {
   path?: string;
   publicPath?: string;
   threadId?: string;
+  investigationId?: string;
+  instrumentId?: string;
+  selectedId?: string;
 }
+
+const INVESTIGATION_PATH = /^\/i\/([^/]+)(\/report)?\/?$/;
 
 export function useNavigationState() {
   useAgentRouteState<NavigationState>({
     browserTabId: TAB_ID,
     requestSource: TAB_ID,
-    getNavigationState: ({ pathname }) => navigationStateForPath(pathname),
-    getCommandPath: commandPathForNavigation,
+    getNavigationState: ({ pathname, searchParams }) => {
+      const m = INVESTIGATION_PATH.exec(pathname);
+      if (!m) return navigationStateForPath(pathname);
+      return {
+        view: m[2] ? "report" : "investigation",
+        path: pathname,
+        publicPath: appPathFromLocalRoute(pathname),
+        investigationId: decodeURIComponent(m[1]!),
+        ...(searchParams.get("instrument") ? { instrumentId: searchParams.get("instrument")! } : {}),
+        ...(searchParams.get("sel") ? { selectedId: searchParams.get("sel")! } : {}),
+      };
+    },
+    getCommandPath: (command) => {
+      if (command?.view === "extensions" && onInvestigation()) return "";
+      return commandPathForNavigation(command);
+    },
   });
+}
+
+// Extensions built during an investigation surface as instruments in the
+// workbench stage, so the framework's auto-open of the Extensions view is
+// suppressed there.
+function onInvestigation(): boolean {
+  return typeof window !== "undefined" && INVESTIGATION_PATH.test(window.location.pathname);
 }
 
 export function commandPathForNavigation(command: NavigationState): string {

@@ -1,0 +1,19 @@
+time_local,event,ref,weight_kg,seal,user,note
+2026-03-10 18:58,TRAILER_ARRIVAL,4PN 1147,,,gate,dock 7; shipment TA-SH-558214
+2026-03-10 19:06,SEAL_CHECK,4PN 1147,,TA-4471893,mdvorak,intact; matches CMR
+2026-03-10 19:15,UNLOAD_COMPLETE,TA-SH-558214,,,mdvorak,2 pallets
+2026-03-10 19:18,INTAKE_WEIGH,071826,242.6,,mdvorak,floor scale FS-2 (resolution 0.1 kg; tolerance +/-0.2 kg)
+2026-03-10 19:20,INTAKE_WEIGH,071833,253.8,,mdvorak,floor scale FS-2
+2026-03-10 19:22,WEIGHT_EXCEPTION,WX-0310-14,496.4,,mdvorak,intake total 496.4 vs CMR 507.3 (-10.9 kg; -2.1%)
+2026-03-10 19:24,MOVE,TA-SH-558214,,,mdvorak,to exception lane E2
+2026-03-10 20:50,VISUAL_CHECK,TA-SH-558214,,,rhajek,wrap intact both pallets; no tears; labels match manifest; not opened
+2026-03-10 21:02,NOTIFY,WX-0310-14,,,rhajek,email to shipper dispatch Halvard Leipzig re weight variance; no reply logged
+2026-03-10 21:10,RELEASE,WX-0310-14,,,rhajek,variance under 5% of declared; released to outbound with remark
+2026-03-10 21:12,MOVE,TA-SH-558214,,,rhajek,to outbound lane O4
+2026-03-11 04:41,OUTBOUND_WEIGH,071826,242.6,,kbenes,floor scale FS-2
+2026-03-11 04:43,OUTBOUND_WEIGH,071833,253.7,,kbenes,floor scale FS-2
+2026-03-11 04:48,LOADED,4PN 2093,,,kbenes,2 pallets; tractor 1PL 7720
+2026-03-11 04:52,SEAL_APPLIED,4PN 2093,,TA-5530817,kbenes,from hub seal stock
+2026-03-11 05:00,TRAILER_DEPART,4PN 2093,,TA-5530817,gate,
+2026-03-11 15:10,CCTV_REVIEW,TA-SH-558214,,,security,footage lanes E2 and O4 reviewed 18:58-05:00; only moves and 20:50 visual check seen
+2026-03-11 15:10,CCTV_GAP,cam 4 (lane E2),,,security,no recording 20:24-20:39 by DVR clock (scheduled firmware reboot); DVR clock runs 6 min slow vs WMS time

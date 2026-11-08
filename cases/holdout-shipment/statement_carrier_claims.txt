@@ -1,0 +1,36 @@
+TRANSALP FREIGHT S.R.O. - CLAIMS DEPARTMENT
+Response to cargo claim, consignee ref GR-2026-0311-04
+Shipment TA-SH-558214 / customer ref HX-26-0310
+Author: Martin Lechner, Claims Manager          Date: 2026-03-13
+
+TransAlp rejects liability for the shortage reported by Novak Handels.
+
+1. Collection. Our driver P. Novotny arrived at Halvard Leipzig at 14:57 and the
+   trailer was loaded and sealed (TA-4471893) by 15:10. The pallets were already
+   wrapped and waiting at the door when he backed on. He did not handle the
+   freight; loading was done by Halvard staff.
+
+2. Transit to Plzen. The driver confirms he drove directly to our Plzen hub and
+   made no stops. Seal TA-4471893 was checked intact on arrival at the hub.
+
+3. Hub. The freight was weighed on intake at 242.6 kg and 253.8 kg. Our hub
+   raised a weight exception against the CMR figure and emailed the shipper the
+   same evening; we received no reply. The pallets were inspected visually and
+   were never opened at the hub. They were weighed again before loading
+   (242.6 / 253.7 kg) and sealed with TA-5530817.
+
+4. Delivery. The consignee's own dock weights (242.7 / 253.7 kg) agree with our
+   hub weights within scale tolerance. Nothing was removed while we had the
+   goods. The shortfall against the CMR already existed when we received them.
+
+5. Seal number. Seals issued to HUB PLZ are from series TA-5530800 to
+   TA-5530899. Our seal numbers contain digits only after the TA- prefix. A
+   reading of "TA-5530B17" is a misreading of TA-5530817. The consignee
+   confirms the seal body was intact.
+
+6. Wrap. Our hub does not rewrap customer pallets and holds no record of doing
+   so for this shipment.
+
+We request that the consignee redirect its claim to the shipper.
+
+M. Lechner

@@ -1,0 +1,11 @@
+QA LAB NOTEBOOK — transcribed entries, timestamps as written from the lab PC clock
+
+2026-03-12 14:10 — LT-2 spot check with 1.0 sccm reference leak: station reads 1.0 sccm. OK. (J. Okafor)
+
+2026-03-12 16:30 — Routine retained-sample pull from L-3103. No findings.
+
+2026-03-19 10:05 — Returned field unit PX-10413 (ticket FT-8807) retest on bench: 4.1 sccm leak at seal interface (spec < 1.0). Seal removed; durometer measured 69 Shore A, within spec. Seal lip shows no visible damage. Shaft surface finish within drawing. (J. Okafor)
+
+2026-03-19 11:40 — Retained sample PX-10416 (never shipped) bench leak test: 3.6 sccm. Fails spec. Original MES record shows it passed at 0.4 sccm on LT-2. (J. Okafor)
+
+2026-03-20 08:15 — NOTE: lab PC clock found still on standard time; it was not moved forward at the 8 March daylight-saving change. Entries made since 8 March read one hour behind plant MES time. Clock corrected this morning. (QA lead)

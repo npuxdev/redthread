@@ -1,0 +1,6 @@
+time,circuit,area,event
+2026-11-06 18:30:00,L2,Gallery 2,scene EVENING (60%)
+2026-11-06 18:30:00,L3,Gallery 3,scene EVENING (60%)
+2026-11-06 21:12:18,L2,Gallery 2,supply lost (breaker L2-B tripped)
+2026-11-06 21:12:18,S1,Security (cameras / readers),no change (separate UPS circuit)
+2026-11-06 21:47:50,L2,Gallery 2,supply restored (breaker reset by facilities)

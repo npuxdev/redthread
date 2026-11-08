@@ -1,0 +1,7 @@
+date,object,crate,movement,counterparty,status,intake_scan,receiving_signature,entered_by
+2026-03-11,1994.031,CR-02,OUT,City Framing Co.,COMPLETE,,,R. Okafor
+2026-03-29,1994.031,CR-02,IN,City Framing Co.,COMPLETE,IS-87120,R. Okafor,R. Okafor
+2026-06-02,1987.112,CR-04,OUT,Lindqvist Conservation Studio,COMPLETE,,,R. Okafor
+2026-07-18,1987.112,CR-04,IN,Lindqvist Conservation Studio,RETURNED (manual status),,,M. Achterberg
+2026-09-03,2001.007,CR-09,OUT,National Loan Programme,COMPLETE,,,R. Okafor
+2026-10-01,2001.007,CR-09,IN,National Loan Programme,COMPLETE,IS-88016,R. Okafor,R. Okafor

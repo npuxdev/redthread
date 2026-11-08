@@ -1,0 +1,139 @@
+/* REDTHREAD workbench — MINERAL / SIGNAL.
+   Quiet by default; motion is reserved for evidence-driven reorganization. */
+
+.rt-app {
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  --agentkit-chat-background: hsl(var(--card));
+  --rt-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --rt-reorg: 720ms;
+}
+
+.rt-mono {
+  font-family: "JetBrains Mono Variable", ui-monospace, "SF Mono", monospace;
+  font-feature-settings: "zero" 1;
+  letter-spacing: -0.01em;
+}
+
+.rt-serif {
+  font-family: "Source Serif 4 Variable", Georgia, serif;
+  font-optical-sizing: auto;
+}
+
+.rt-kicker {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.rt-heading {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+/* Uncertainty reads as texture, not as another color. */
+.rt-hatch {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    hsl(var(--rt-evidence) / 0.16) 0 2px,
+    transparent 2px 6px
+  );
+}
+
+.rt-dashed {
+  border-style: dashed !important;
+}
+
+/* Instrument markers move when the evidence moves. */
+.rt-move {
+  transition:
+    left var(--rt-reorg) var(--rt-ease),
+    top var(--rt-reorg) var(--rt-ease),
+    transform var(--rt-reorg) var(--rt-ease),
+    opacity 300ms ease,
+    background-color 400ms ease,
+    border-color 400ms ease,
+    color 400ms ease;
+  transition-delay: var(--rt-delay, 0ms);
+}
+
+.rt-flip {
+  transition: transform var(--rt-reorg) var(--rt-ease);
+  transition-delay: var(--rt-delay, 0ms);
+}
+
+.rt-recede {
+  opacity: 0.55;
+}
+.rt-recede .rt-recede-text {
+  text-decoration: line-through;
+  text-decoration-color: hsl(var(--muted-foreground) / 0.6);
+}
+
+/* A short pulse marks the item that changed because of what. */
+@keyframes rt-signal {
+  0% {
+    box-shadow: 0 0 0 0 hsl(var(--rt-oxide) / 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 10px hsl(var(--rt-oxide) / 0);
+  }
+}
+.rt-signal {
+  animation: rt-signal 900ms var(--rt-ease) var(--rt-delay, 0ms) 2;
+}
+
+@keyframes rt-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rt-arrive {
+  animation: rt-arrive 360ms var(--rt-ease) both;
+  animation-delay: var(--rt-delay, 0ms);
+}
+
+.rt-thread {
+  stroke: hsl(var(--rt-oxide));
+}
+
+.rt-scroll {
+  scrollbar-gutter: stable;
+}
+
+.rt-source-text mark {
+  background: hsl(var(--rt-evidence) / 0.16);
+  color: inherit;
+  border-bottom: 1.5px solid hsl(var(--rt-evidence));
+  padding: 0 1px;
+}
+
+.rt-source-text mark[data-active="true"] {
+  background: hsl(var(--primary) / 0.18);
+  border-bottom-color: hsl(var(--primary));
+}
+
+.rt-co .agentkit-chat-empty-copy h1 {
+  font-size: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rt-move,
+  .rt-flip {
+    transition: none;
+  }
+  .rt-signal,
+  .rt-arrive {
+    animation: none;
+  }
+}

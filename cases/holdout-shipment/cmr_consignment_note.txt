@@ -1,0 +1,34 @@
+CMR INTERNATIONAL CONSIGNMENT NOTE - TRANSCRIPTION OF CARRIER COPY
+Note no.: CMR 0310-HX          Customer ref: HX-26-0310
+Carrier shipment no.: TA-SH-558214
+
+1  Sender:      Halvard Distribution GmbH, DC Leipzig-Nord, Am Logistikpark 14, 04159 Leipzig, DE
+2  Consignee:   Novak Handels GmbH, Lager Simmering, Hallergasse 9, 1110 Wien, AT
+3  Place of delivery: Wien, AT
+4  Place and date of taking over the goods: Leipzig, DE, 2026-03-10
+5  Documents attached: packing list HX-26-0310 (1 page)
+6-9  Marks / packages / nature of goods:
+     2 pallets (EUR), stretch-wrapped, total 40 cartons
+     Velora NB-14 Pro notebook, 5 units per carton, 200 units total
+     Pallet 1: SSCC 340123450000071826  - cartons CT-260310-001 to CT-260310-020
+     Pallet 2: SSCC 340123450000071833  - cartons CT-260310-021 to CT-260310-040
+10 Statistical no.: 8471 30
+11 Gross weight kg: 507.3
+12 Volume m3: 2.9
+13 Sender's instructions: Do not double-stack. High-value goods - seal on departure.
+     Declared value: EUR 236,000.00 (200 x EUR 1,180.00)
+     Packing data: carton gross nominal 11.40 kg; pallet standard tare
+     (EUR pallet + stretch film + corner boards) 25.6 kg.
+16 Carrier:     TransAlp Freight s.r.o., Plzen, CZ
+     Vehicle: tractor 4PB 3381 / trailer 4PN 1147
+     Driver: P. Novotny
+17 Successive carriers: transfer at TransAlp hub Plzen (cross-dock)
+18 Carrier's reservations and observations: (blank)
+     Seal no. on departure: TA-4471893
+
+22 Signature and stamp of sender:   I. Bauer (Halvard DC Leipzig) - 2026-03-10 16:10
+23 Signature and stamp of carrier:  P. Novotny - 2026-03-10 16:10
+24 Goods received:  Wien, 2026-03-11 10:21
+     Signature of consignee: A. Sommer (Novak Handels)
+     Reservation (handwritten): "Gross weight on receipt 496.4 kg vs 507.3 kg
+     declared. Accepted subject to inspection of contents."

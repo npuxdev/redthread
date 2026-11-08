@@ -1,0 +1,16 @@
+FACILITIES SERVICE DESK — TICKET FS-2291
+Opened: 2026-11-06 17:40   Closed: 2026-11-06 18:20 (deferred action)
+Asset: Camera 04 (Gallery 2), NVR-A
+Technician: O. Brandt
+
+Request: Quarterly CCTV check, Galleries 1–4.
+
+Findings:
+Cameras 01, 02 and 03 burned-in clocks agree with the network time reference to within one second.
+Camera 04 burned-in clock reads ahead of the network time reference. At 18:02:00 reference time the Camera 04 overlay showed 18:13:00. The camera's clock is running eleven minutes fast.
+Cause: automatic time sync on Camera 04 was disabled by the NVR firmware update of 2026-10-30 and has not been re-enabled.
+Recorded footage keeps the camera's own clock; exported stills and the NVR event export carry the same (fast) time.
+
+Action: Correction deferred. Re-enabling sync requires an NVR-A reboot, which interrupts recording on all four gallery cameras. Scheduled for Monday 2026-11-09 06:00 with the security supervisor's agreement.
+
+Note for anyone reviewing Camera 04 material before then: subtract 11 minutes from Camera 04 times to obtain reference time. The badge system and the lighting controller are synced to the network time reference.

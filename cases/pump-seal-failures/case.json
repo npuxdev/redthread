@@ -1,0 +1,43 @@
+{
+  "title": "Coolant pump field leaks",
+  "question": "Why are PX-series coolant pumps leaking in the field, and which units are at risk?",
+  "summary": "Field leak reports on recently built pumps. Production genealogy, supplier certificates, QA lab notes, a maintenance ticket and an engineer's email.",
+  "sources": [
+    {
+      "file": "field-failure-reports.csv",
+      "title": "Field failure tickets (service desk export)",
+      "kind": "records",
+      "provenance": { "origin": "Customer service desk", "exported": "2026-03-24" }
+    },
+    {
+      "file": "production-genealogy.csv",
+      "title": "Production genealogy — PX build, 12 Mar",
+      "kind": "records",
+      "provenance": { "origin": "Plant MES", "note": "Times are MES plant time" }
+    },
+    {
+      "file": "seal-supplier-coc.json",
+      "title": "Seal supplier certificates of conformance",
+      "kind": "records",
+      "provenance": { "origin": "Supplier portal" }
+    },
+    {
+      "file": "qa-lab-log.txt",
+      "title": "QA lab notebook (transcribed)",
+      "kind": "text",
+      "provenance": { "origin": "QA lab", "custodian": "QA lead" }
+    },
+    {
+      "file": "lt2-maintenance-ticket.txt",
+      "title": "Maintenance ticket MT-5521 — leak test station LT-2",
+      "kind": "text",
+      "provenance": { "origin": "Maintenance CMMS" }
+    },
+    {
+      "file": "quality-engineer-email.txt",
+      "title": "Email: preliminary root cause",
+      "kind": "text",
+      "provenance": { "origin": "Quality engineering mailbox" }
+    }
+  ]
+}

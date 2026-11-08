@@ -74,11 +74,23 @@ function EndVoiceChatOutsideChat() {
   return null;
 }
 
+/** REDTHREAD owns its workspace chrome; template chrome stays for settings and chat. */
+export function ownsWorkbenchChrome(pathname: string): boolean {
+  return pathname === HOME_PATH || pathname === "/" || pathname.startsWith("/i/");
+}
+
 export function Layout({ children }: LayoutProps) {
+  const { pathname } = useLocation();
   return (
     <RealtimeVoiceModeProvider browserTabId={TAB_ID}>
       <EndVoiceChatOutsideChat />
-      <LayoutShell>{children}</LayoutShell>
+      {ownsWorkbenchChrome(pathname) ? (
+        <HeaderActionsProvider>
+          <div className="rt-app">{children}</div>
+        </HeaderActionsProvider>
+      ) : (
+        <LayoutShell>{children}</LayoutShell>
+      )}
     </RealtimeVoiceModeProvider>
   );
 }
