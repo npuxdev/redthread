@@ -1,48 +1,32 @@
+import { type CsvProblem, parseCsv } from "../../../shared/csv.js";
 import type { SourceRow } from "../../../shared/investigation.js";
 
 export type RecordValue = string | number | boolean | null;
 export type RecordRow = Record<string, RecordValue>;
 
-function splitCsvLine(line: string): string[] {
-  const out: string[] = [];
-  let cur = "";
-  let quoted = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (quoted) {
-      if (ch === '"' && line[i + 1] === '"') {
-        cur += '"';
-        i++;
-      } else if (ch === '"') quoted = false;
-      else cur += ch;
-    } else if (ch === '"') quoted = true;
-    else if (ch === ",") {
-      out.push(cur);
-      cur = "";
-    } else cur += ch;
-  }
-  out.push(cur);
-  return out.map((s) => s.trim());
-}
-
-/** Parses a records source (JSON array, {rows: [...]}, or CSV with header). */
-export function parseRecords(source: Pick<SourceRow, "content">): { fields: string[]; rows: RecordRow[] } {
-  const text = source.content.trim();
+/**
+ * Parses a records source (JSON array, {rows: [...]}, or CSV with header).
+ * Empty CSV cells are "", cells missing from a short row are null.
+ */
+export function parseRecords(source: Pick<SourceRow, "content">): { fields: string[]; rows: RecordRow[]; problems: CsvProblem[] } {
   try {
-    const parsed = JSON.parse(text);
+    const parsed = JSON.parse(source.content);
     const rows: unknown[] = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.rows) ? parsed.rows : [];
     const objs = rows.filter((r): r is RecordRow => !!r && typeof r === "object" && !Array.isArray(r));
     const fields = [...new Set(objs.flatMap((r) => Object.keys(r)))];
-    return { fields, rows: objs };
+    return { fields, rows: objs, problems: [] };
   } catch {
-    const lines = text.split(/\r?\n/).filter((l) => l.trim());
-    if (lines.length < 2) return { fields: [], rows: [] };
-    const fields = splitCsvLine(lines[0]!);
-    const rows = lines.slice(1).map((line) => {
-      const cells = splitCsvLine(line);
-      return Object.fromEntries(fields.map((f, i) => [f, cells[i] ?? null])) as RecordRow;
+    const { records, problems } = parseCsv(source.content);
+    const [header, ...body] = records;
+    if (!header || !body.length) return { fields: [], rows: [], problems };
+    const fields = header.cells;
+    const rows = body.map((record, row) => {
+      if (record.cells.length !== fields.length) {
+        problems.push({ line: record.line, message: `Row ${row} has ${record.cells.length} values for ${fields.length} columns` });
+      }
+      return Object.fromEntries(fields.map((f, i) => [f, record.cells[i] ?? null])) as RecordRow;
     });
-    return { fields, rows };
+    return { fields, rows, problems: problems.sort((a, b) => a.line - b.line) };
   }
 }
 
@@ -103,7 +87,7 @@ export interface ReconGroup {
 }
 
 export interface Reconciliation {
-  sides: Array<ReconSide & { rowCount: number; fields: string[] }>;
+  sides: Array<ReconSide & { rowCount: number; fields: string[]; problems: CsvProblem[] }>;
   groups: ReconGroup[];
   stats: { match: number; partial: number; near: number; manual: number };
 }
@@ -121,8 +105,8 @@ export function reconcile(
 ): Reconciliation {
   const parsed = sides.map((side) => {
     const src = sources.get(side.sourceId);
-    const { fields, rows } = src ? parseRecords(src) : { fields: [], rows: [] };
-    return { side, fields, rows };
+    const { fields, rows, problems } = src ? parseRecords(src) : { fields: [], rows: [], problems: [] };
+    return { side, fields, rows, problems };
   });
 
   const refKey = (sourceId: string, row: number) => `${sourceId}#${row}`;
@@ -199,7 +183,7 @@ export function reconcile(
   for (const g of groups) stats[g.kind]++;
 
   return {
-    sides: parsed.map(({ side, fields, rows }) => ({ ...side, fields, rowCount: rows.length })),
+    sides: parsed.map(({ side, fields, rows, problems }) => ({ ...side, fields, rowCount: rows.length, problems })),
     groups,
     stats,
   };

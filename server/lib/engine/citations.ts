@@ -1,3 +1,4 @@
+import { parseCsv } from "../../../shared/csv.js";
 import type { Citation, SourceRow } from "../../../shared/investigation.js";
 
 export interface CitationProblem {
@@ -16,13 +17,18 @@ function normalizeWhitespace(s: string): string {
   return s.replace(/\s+/g, " ").trim();
 }
 
-export function recordRows(source: Pick<SourceRow, "content">): unknown[] | null {
+/** Row-addressable entries of a source; CSV rows are their raw record text, so a quoted field may span lines. */
+export function recordRows(source: Pick<SourceRow, "kind" | "content">): unknown[] | null {
   try {
     const parsed = JSON.parse(source.content);
     if (Array.isArray(parsed)) return parsed;
     if (parsed && Array.isArray(parsed.rows)) return parsed.rows;
   } catch {
     // CSV fallback below
+  }
+  if (source.kind === "records") {
+    const { records } = parseCsv(source.content);
+    return records.length > 1 ? records.slice(1).map((r) => r.text) : null;
   }
   const lines = source.content.split(/\r?\n/).filter((l) => l.trim());
   return lines.length > 1 ? lines.slice(1) : null;

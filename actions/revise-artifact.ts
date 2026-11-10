@@ -2,7 +2,7 @@ import { defineAction } from "@agent-native/core/action";
 import { z } from "zod";
 
 import { ArtifactStatus, Citation, Epistemic } from "../shared/investigation.js";
-import { actorFrom } from "../server/lib/actor.js";
+import { actorFrom, requireInvestigator } from "../server/lib/actor.js";
 import { reviseArtifact } from "../server/lib/store.js";
 
 export default defineAction({
@@ -20,6 +20,7 @@ export default defineAction({
     citations: z.array(Citation).optional(),
     attrs: z.record(z.string(), z.unknown()).optional().describe("Merged into existing attrs"),
   }),
+  authorize: (args, ctx) => (args.status === "accepted" ? requireInvestigator(args, ctx) : undefined),
   run: async (args, ctx) => {
     const { artifact, impact } = await reviseArtifact(args, actorFrom(ctx));
     return { code: artifact.code, status: artifact.status, impact };

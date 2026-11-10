@@ -3,9 +3,10 @@ import { ChatBubbleIcon, CheckIcon, Cross2Icon, Link2Icon, Pencil1Icon } from "@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
+import { parseCsv } from "@shared/csv";
 import { type ArtifactRow, type ArtifactStatus, type AssumptionRow, type Citation, type LinkRow, RELATIONS, type Relation, type SourceRow, type Standing } from "@shared/investigation";
 
-import { formatClock, indexById, relativeTime, standingOf, useRtAction, useStoredNumber, useWorkbenchParams, type Workspace } from "./lib";
+import { formatClock, indexById, relativeTime, standingOf, type SupportSignal, useRtAction, useStoredNumber, useWorkbenchParams, type Workspace } from "./lib";
 import { ActorTag, Btn, Code, EpistemicMark, EvidenceTag, inputClass, Kicker, OverlayPanel, StandingTag, StatusTag } from "./ui";
 
 export function Inspector({ ws }: { ws: Workspace }) {
@@ -165,9 +166,9 @@ function RecordsTable({ source, rows, highlight, activeRef }: { source: SourceRo
       const list: Record<string, unknown>[] = Array.isArray(j) ? j : j.rows ?? [];
       return { fields: [...new Set(list.flatMap((r) => Object.keys(r)))], rows: list.map((r) => r) };
     } catch {
-      const lines = source.content.trim().split(/\r?\n/);
-      const fields = (lines[0] ?? "").split(",");
-      return { fields, rows: lines.slice(1).map((l) => Object.fromEntries(l.split(",").map((v, i) => [fields[i], v]))) };
+      const [header, ...body] = parseCsv(source.content).records;
+      const fields = header?.cells ?? [];
+      return { fields, rows: body.map((r) => Object.fromEntries(fields.map((f, i) => [f, r.cells[i] ?? ""]))) };
     }
   }, [source.content]);
   return (
@@ -244,6 +245,22 @@ function CitationList({ ws, citations, ownerId }: { ws: Workspace; citations: Ci
   );
 }
 
+function SupportNote({ signal }: { signal: SupportSignal | undefined }) {
+  if (!signal || signal.level === "covered") return null;
+  return (
+    <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">
+      {signal.level === "visual" ? (
+        "Cites only an image region. Compare the region with the claim before accepting it."
+      ) : (
+        <>
+          <span className="text-[hsl(var(--rt-unresolved))]">Wording check:</span> the cited text never mentions{" "}
+          <span className="text-foreground/85">{signal.missing.join(", ")}</span>. A quote can exist without saying what the finding claims; read it before accepting.
+        </>
+      )}
+    </p>
+  );
+}
+
 function ArtifactView({ ws, a }: { ws: Workspace; a: ArtifactRow }) {
   const idx = indexById(ws);
   const { set } = useWorkbenchParams();
@@ -297,6 +314,7 @@ function ArtifactView({ ws, a }: { ws: Workspace; a: ArtifactRow }) {
 
       <Section title="Evidence">
         <CitationList ws={ws} citations={a.citations} ownerId={a.id} />
+        <SupportNote signal={ws.support?.[a.id]} />
         {basis.length ? (
           <div className="mt-2 text-[12px]">
             <span className="text-muted-foreground">Inferred from </span>

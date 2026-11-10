@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { ArtifactType, Citation, Epistemic, Relation } from "../shared/investigation.js";
 import { actorFrom } from "../server/lib/actor.js";
+import { describeSupport } from "../server/lib/engine/support.js";
 import { recordArtifacts } from "../server/lib/store.js";
 
 export default defineAction({
@@ -13,7 +14,9 @@ Rules enforced by the application:
 - hypotheses are inference or speculation, never observation.
 - events need attrs.sourceTime (as recorded, YYYY-MM-DDTHH:mm) and attrs.clockKey (which clock/device/document series produced the time).
 Agent-recorded items start as "proposed" until the investigator accepts them.
-Give items a "ref" to link them within the same batch; links may also reference existing ids or codes (E-03, C-01, L-02).`,
+Give items a "ref" to link them within the same batch; links may also reference existing ids or codes (E-03, C-01, L-02).
+The batch is all-or-nothing: if any artifact or link fails validation, nothing is saved.
+A verbatim quote only proves the text exists. "supportReview" lists cited observations whose label uses terms the cited text never mentions; it is a wording heuristic, not a verdict. Re-read those citations and either narrow the label to what the source says, cite the passage that does say it, or record the claim as an interpretation or inference.`,
   schema: z.object({
     investigationId: z.string(),
     artifacts: z
@@ -45,10 +48,15 @@ Give items a "ref" to link them within the same batch; links may also reference 
     reason: z.string().optional(),
   }),
   run: async (args, ctx) => {
-    const { artifacts, links } = await recordArtifacts(args, actorFrom(ctx));
+    const { artifacts, links, support } = await recordArtifacts(args, actorFrom(ctx));
+    const supportReview = artifacts.flatMap((a) => {
+      const note = support[a.id] ? describeSupport(support[a.id]!) : null;
+      return note ? [`${a.code}: ${note}`] : [];
+    });
     return {
-      artifacts: artifacts.map((a) => ({ id: a.id, code: a.code, type: a.type, label: a.label, status: a.status })),
+      artifacts: artifacts.map((a) => ({ id: a.id, code: a.code, type: a.type, label: a.label, status: a.status, ...(support[a.id] ? { support: support[a.id]!.level } : {}) })),
       links: links.map((l) => ({ id: l.id, code: l.code, relation: l.relation, status: l.status })),
+      ...(supportReview.length ? { supportReview } : {}),
     };
   },
 });

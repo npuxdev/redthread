@@ -27,7 +27,7 @@ OPENAI_API_KEY=sk-...
 # ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-`AUTH_DISABLED=true` is already set in the example file, so local use skips login. The database is a local PGlite store at `data/pglite`, created the first time the server starts. Nothing else has to be installed.
+`pnpm dev` signs you in automatically on localhost, so there is no login step. Do not set `AUTH_DISABLED` on anything reachable by others; the server refuses to start with it outside development. The database is a local PGlite store at `data/pglite`, created the first time the server starts. Nothing else has to be installed.
 
 ```bash
 pnpm dev
@@ -71,7 +71,7 @@ The screenshots are from one worked investigation. The same layout is what you g
 
 ## How it is put together
 
-- **Actions are the only API** (`actions/`). The agent's tools and the UI's queries and mutations are the same `defineAction` calls. Who called is recorded: tool, MCP and automation callers are the agent, and everyone else is the investigator.
+- **Actions are the only API** (`actions/`). The agent's tools and the UI's queries and mutations are the same `defineAction` calls. Who called is recorded: only a signed-in user acting through the app UI is the investigator. Every other caller (agent tools, MCP, A2A, automations, the CLI, direct HTTP clients) is treated as the agent, so its work stays proposed. Accepting findings is UI-only and checked at the action boundary. Deleting or resetting an investigation or collection needs a signed-in user and explicit approval when the agent asks.
 - **Investigation state** (`server/lib/store.ts`, `shared/investigation.ts`) has these parts:
   - **sources**, stored verbatim and never edited
   - **artifacts**: claims, entities, events, observations, hypotheses and questions, each with an epistemic level (observation, interpretation, inference or speculation)

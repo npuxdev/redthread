@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { getDb, schema } from "../server/db/index.js";
+import { requireSignedInUser } from "../server/lib/actor.js";
 import { deleteInvestigation } from "../server/lib/store.js";
 
 const errors = defineActionErrors("not_found", "not_removed");
@@ -28,6 +29,8 @@ export default defineAction({
     _receipt: receiptSchema,
   }),
   errors,
+  needsApproval: true,
+  authorize: requireSignedInUser,
   run: async ({ investigationId }) => {
     const db = getDb();
     const [existing] = await db

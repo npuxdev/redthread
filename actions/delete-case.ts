@@ -1,9 +1,10 @@
 import { defineAction, defineActionErrors } from "@agent-native/core/action";
 import { z } from "zod";
 
+import { requireSignedInUser } from "../server/lib/actor.js";
 import { CaseError, deleteCase, listCases } from "../server/lib/cases.js";
 
-const errors = defineActionErrors("invalid_slug", "not_found", "unsafe_path", "not_removed");
+const errors = defineActionErrors("invalid_slug", "not_found", "unsafe_path", "invalid_manifest", "not_removed");
 
 const receiptSchema = z.object({
   changed: z.boolean(),
@@ -26,6 +27,8 @@ export default defineAction({
     _receipt: receiptSchema,
   }),
   errors,
+  needsApproval: true,
+  authorize: requireSignedInUser,
   run: async ({ slug }) => {
     try {
       await deleteCase(slug);

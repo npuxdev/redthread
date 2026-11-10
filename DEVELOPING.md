@@ -243,7 +243,7 @@ SQL for additive migrations, health checks, or carefully scoped maintenance.
 | Variable        | Required                     | Description                                                                   |
 | --------------- | ---------------------------- | ----------------------------------------------------------------------------- |
 | `DATABASE_URL`  | Production yes, local dev no | PostgreSQL or PGlite database URL (local dev default: `pglite:./data/pglite`) |
-| `AUTH_DISABLED` | Optional                     | Set to `true` or `1` to skip login/signup (local dev/preview only)            |
+| `AUTH_DISABLED` | Optional                     | `true`/`1` runs every request as one dev account. Development only; the server refuses to start with it when `NODE_ENV` is not `development` or `test` |
 
 ## Extensions (Framework Feature)
 

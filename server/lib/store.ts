@@ -28,6 +28,7 @@ import { getDb, schema } from "../db/index.js";
 import { computeChronology } from "./engine/chronology.js";
 import { uninspectedImages, validateCitations } from "./engine/citations.js";
 import { constraintFlips, propagateImpact } from "./engine/impact.js";
+import { supportByArtifact } from "./engine/support.js";
 import { parseLocalMinutes } from "./engine/time.js";
 
 const now = () => new Date().toISOString();
@@ -272,6 +273,8 @@ export async function recordInspection(investigationId: string, source: SourceRo
 
 // ---------- activity + impact ----------
 
+type Db = ReturnType<typeof getDb>;
+
 async function logActivity(entry: {
   investigationId: string;
   actor: Actor;
@@ -282,8 +285,7 @@ async function logActivity(entry: {
   after?: unknown | undefined;
   reason?: string | null | undefined;
   impact?: ImpactSet | null | undefined;
-}) {
-  const db = getDb();
+}, db: Db = getDb()) {
   const row = {
     id: newId("act"),
     investigationId: entry.investigationId,
@@ -502,26 +504,27 @@ export async function recordArtifacts(
     const batch = new Map<string, string>();
     const prepared = input.artifacts.map((a) => {
       const id = newId("art");
-      if (a.ref) batch.set(a.ref, id);
+      if (a.ref) {
+        if (batch.has(a.ref)) {
+          throw new InvestigationError(`Ref "${a.ref}" is defined twice in this batch. Give each item its own ref. Nothing in this call was saved.`);
+        }
+        batch.set(a.ref, id);
+      }
       return { a: { ...a, citations: normalizeCitations(state, a.citations ?? []) }, id };
     });
     for (const { a } of prepared) validateArtifact(state, a, batch);
     for (const { a } of prepared) await requireInspection(state, a.citations ?? [], actor, `${a.type} "${a.label}"`);
-    for (const l of input.links ?? []) {
-      await requireInspection(state, normalizeCitations(state, l.citations ?? []), actor, `link ${l.from} → ${l.to}`);
-    }
 
-    const db = getDb();
     const codes = state.artifacts.map((x) => x.code);
     const status: ArtifactStatus = actor === "agent" ? "proposed" : "accepted";
-    const created: ArtifactRow[] = [];
-    for (const { a, id } of prepared) {
+    const at = now();
+    const artifactRows = prepared.map(({ a, id }) => {
       const code = nextCode(TYPE_PREFIX[a.type], codes);
       codes.push(code);
       const basis = (a.basis ?? []).map((b) => resolveRef(state, b, batch)!);
       const attrs: Record<string, unknown> = { ...(a.attrs ?? {}), ...(basis.length ? { basis } : {}) };
       if (a.type === "hypothesis" && !attrs.standing) attrs.standing = "open";
-      const row = {
+      return {
         id,
         investigationId: input.investigationId,
         code,
@@ -536,36 +539,43 @@ export async function recordArtifacts(
         reviewFlag: null,
         createdBy: actor,
         supersedes: null,
-        createdAt: now(),
-        updatedAt: now(),
+        createdAt: at,
+        updatedAt: at,
       };
-      await db.insert(schema.artifacts).values(row);
-      created.push(mapArtifact(row));
-    }
-
-    const linkRows = input.links?.length
-      ? await insertLinks(await loadState(input.investigationId), input.links, actor, batch)
-      : [];
-
-    await logActivity({
-      investigationId: input.investigationId,
-      actor,
-      action: "record-artifacts",
-      summary: `Recorded ${created.length} artifact${created.length === 1 ? "" : "s"}${linkRows.length ? ` and ${linkRows.length} link${linkRows.length === 1 ? "" : "s"}` : ""}: ${created
-        .slice(0, 4)
-        .map((c) => c.code)
-        .join(", ")}${created.length > 4 ? "…" : ""}`,
-      targetIds: [...created.map((c) => c.id), ...linkRows.map((l) => l.id)],
-      reason: input.reason,
     });
-    return { artifacts: created, links: linkRows };
+    const created = artifactRows.map(mapArtifact);
+
+    // Links may name this batch's artifacts by ref or by the codes they are about to receive.
+    const withBatch: InvestigationState = { ...state, artifacts: [...state.artifacts, ...created] };
+    const linkRows = await prepareLinks(withBatch, input.links ?? [], actor, batch);
+
+    await getDb().transaction(async (tx) => {
+      if (artifactRows.length) await tx.insert(schema.artifacts).values(artifactRows);
+      if (linkRows.length) await tx.insert(schema.links).values(linkRows);
+      await logActivity(
+        {
+          investigationId: input.investigationId,
+          actor,
+          action: "record-artifacts",
+          summary: `Recorded ${created.length} artifact${created.length === 1 ? "" : "s"}${linkRows.length ? ` and ${linkRows.length} link${linkRows.length === 1 ? "" : "s"}` : ""}: ${created
+            .slice(0, 4)
+            .map((c) => c.code)
+            .join(", ")}${created.length > 4 ? "…" : ""}`,
+          targetIds: [...created.map((c) => c.id), ...linkRows.map((l) => l.id)],
+          reason: input.reason,
+        },
+        tx,
+      );
+    });
+    return { artifacts: created, links: linkRows.map(mapLink), support: supportByArtifact(created, state.sources) };
   });
 }
 
-async function insertLinks(state: InvestigationState, links: NewLink[], actor: Actor, batch?: Map<string, string>) {
-  const db = getDb();
+/** Validates every link in a batch and builds its row; writes nothing. */
+async function prepareLinks(state: InvestigationState, links: NewLink[], actor: Actor, batch?: Map<string, string>) {
   const codes = state.links.map((l) => l.code);
-  const out: LinkRow[] = [];
+  const at = now();
+  const out = [];
   for (const l of links) {
     const fromId = resolveRef(state, l.from, batch);
     const toId = resolveRef(state, l.to, batch);
@@ -576,14 +586,16 @@ async function insertLinks(state: InvestigationState, links: NewLink[], actor: A
         `Link ${l.from} → ${l.to}: ${missing} does not match an id, a code (e.g. E-03, L-02), or a ref defined in this batch.${refs} Nothing in this call was saved.`,
       );
     }
-    if (fromId === toId) throw new InvestigationError("A link needs two different endpoints");
-    if (!l.rationale?.trim()) throw new InvestigationError("A link must state what the relationship claims (rationale)");
+    if (fromId === toId) throw new InvestigationError(`Link ${l.from} → ${l.to}: a link needs two different endpoints. Nothing in this call was saved.`);
+    if (!l.rationale?.trim()) {
+      throw new InvestigationError(`Link ${l.from} → ${l.to}: a link must state what the relationship claims (rationale). Nothing in this call was saved.`);
+    }
     const citations = normalizeCitations(state, l.citations ?? []);
     checkCitations(state, citations, `link ${l.from} → ${l.to}`);
     await requireInspection(state, citations, actor, `link ${l.from} → ${l.to}`);
     const code = nextCode("L", codes);
     codes.push(code);
-    const row = {
+    out.push({
       id: newId("lnk"),
       investigationId: state.investigation.id,
       code,
@@ -595,11 +607,9 @@ async function insertLinks(state: InvestigationState, links: NewLink[], actor: A
       status: actor === "agent" ? "proposed" : "accepted",
       reviewFlag: null,
       createdBy: actor,
-      createdAt: now(),
-      updatedAt: now(),
-    };
-    await db.insert(schema.links).values(row);
-    out.push(mapLink(row));
+      createdAt: at,
+      updatedAt: at,
+    });
   }
   return out;
 }
@@ -607,7 +617,9 @@ async function insertLinks(state: InvestigationState, links: NewLink[], actor: A
 export async function linkArtifacts(input: { investigationId: string; links: NewLink[]; reason?: string | undefined }, actor: Actor) {
   return withLock(input.investigationId, async () => {
     const before = await loadState(input.investigationId);
-    const rows = await insertLinks(before, input.links, actor);
+    const prepared = await prepareLinks(before, input.links, actor);
+    if (prepared.length) await getDb().insert(schema.links).values(prepared);
+    const rows = prepared.map(mapLink);
     const impact = await computeAndFlagImpact(before, rows.map((r) => r.id), `${actor} linked evidence`);
     await logActivity({
       investigationId: input.investigationId,
@@ -717,21 +729,25 @@ export async function acceptArtifacts(input: { investigationId: string; refs: st
       if (artifact.status === "proposed" && !targets.includes(artifact)) targets.push(artifact);
     }
     if (!targets.length) return { accepted: [] as string[] };
-    const db = getDb();
     const at = now();
-    for (const a of targets) {
-      await db.update(schema.artifacts).set({ status: "accepted", updatedAt: at }).where(eq(schema.artifacts.id, a.id));
-    }
     const codes = targets.map((a) => a.code);
-    await logActivity({
-      investigationId: input.investigationId,
-      actor,
-      action: "accept-artifacts",
-      summary: codes.length === 1 ? `Accepted ${codes[0]}` : `Accepted ${codes.length} findings: ${codes.join(", ")}`,
-      targetIds: targets.map((a) => a.id),
-      before: { status: "proposed" },
-      after: { status: "accepted" },
-      reason: input.reason,
+    await getDb().transaction(async (tx) => {
+      for (const a of targets) {
+        await tx.update(schema.artifacts).set({ status: "accepted", updatedAt: at }).where(eq(schema.artifacts.id, a.id));
+      }
+      await logActivity(
+        {
+          investigationId: input.investigationId,
+          actor,
+          action: "accept-artifacts",
+          summary: codes.length === 1 ? `Accepted ${codes[0]}` : `Accepted ${codes.length} findings: ${codes.join(", ")}`,
+          targetIds: targets.map((a) => a.id),
+          before: { status: "proposed" },
+          after: { status: "accepted" },
+          reason: input.reason,
+        },
+        tx,
+      );
     });
     return { accepted: codes };
   });

@@ -2,6 +2,7 @@ import { defineAction } from "@agent-native/core/action";
 import { z } from "zod";
 
 import { computeChronology } from "../server/lib/engine/chronology.js";
+import { supportByArtifact } from "../server/lib/engine/support.js";
 import { computeReadout } from "../server/lib/readout.js";
 import { listActivity, loadState, unreviewedActivity } from "../server/lib/store.js";
 
@@ -17,6 +18,7 @@ export default defineAction({
     return {
       ...state,
       chronology: computeChronology(state),
+      support: supportByArtifact(state.artifacts, state.sources),
       readouts: Object.fromEntries(state.instruments.map((i) => [i.id, computeReadout(state, i)])),
       activity,
       unreviewed: pending.filter((p) => p.actor !== "agent"),

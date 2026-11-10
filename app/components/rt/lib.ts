@@ -17,9 +17,10 @@ import type {
   Standing,
 } from "@shared/investigation";
 import type { Chronology } from "../../../server/lib/engine/chronology";
+import type { SupportSignal } from "../../../server/lib/engine/support";
 import type { Readout } from "../../../server/lib/readout";
 
-export type { Chronology, Readout };
+export type { Chronology, Readout, SupportSignal };
 
 export interface Workspace {
   investigation: { id: string; title: string; question: string; caseSlug: string | null; createdAt: string; reconstruction: unknown };
@@ -29,6 +30,8 @@ export interface Workspace {
   assumptions: AssumptionRow[];
   instruments: InstrumentRow[];
   chronology: Chronology;
+  /** Wording heuristic per artifact id; a review prompt, not proof. */
+  support: Record<string, SupportSignal>;
   readouts: Record<string, Readout>;
   activity: ActivityRow[];
   unreviewed: ActivityRow[];
@@ -228,6 +231,7 @@ export function reviewQueue(ws: Workspace) {
     if (RETIRED.has(a.status)) continue;
     const proposed = a.status === "proposed";
     const basis = (a.attrs.basis as string[] | undefined) ?? [];
+    const support = ws.support?.[a.id];
     const why = a.reviewFlag
       ? a.reviewFlag
       : !proposed
@@ -240,7 +244,9 @@ export function reviewQueue(ws: Workspace) {
               ? "Speculation without direct support"
               : !a.citations.length && !basis.length
                 ? "No citation"
-                : null;
+                : support && (support.level === "weak" || support.level === "partial")
+                  ? `Cited text never mentions ${support.missing.join(", ")}`
+                  : null;
     if (why) judgement.push({ id: a.id, kind: "artifact", code: a.code, label: a.label, why, acceptable: proposed });
     else if (proposed) routine.push(a);
   }
