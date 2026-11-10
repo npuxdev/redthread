@@ -4,22 +4,36 @@ An investigative workbench built on [Agent-Native](https://agent-native.com). A 
 
 The agent knows nothing about any particular case. Everything it knows comes from sources it reads through actions, and every claim it records cites a verbatim quote, a record row or an image region.
 
-See [DEMO.md](DEMO.md) for a five-minute walkthrough.
+See [DEMO.md](DEMO.md) for a five-minute walkthrough of one case, and [Quick start](#quick-start) below for the interface.
 
-## Run it
+## Setup
 
-Requirements: Node 22+ (tested on 24.2) and pnpm 10.
+You need Node.js 22.22 or newer and pnpm 10.29. The repo pins that pnpm version, so Corepack is the shortest path:
 
 ```bash
+corepack enable
+corepack prepare pnpm@10.29.1 --activate
+
+git clone https://github.com/npuxdev/redthread.git
+cd redthread
 pnpm install
-cp .env.example .env   # then set OPENAI_API_KEY or ANTHROPIC_API_KEY
-pnpm dev               # http://localhost:8080
+cp .env.example .env
 ```
 
-- Use a vision-capable model so the agent can inspect image evidence. Testing used OpenAI GPT-6 Luna through the AI SDK engine.
-- `AUTH_DISABLED=true` in `.env` skips login for local use.
-- Data lives in a local PGlite database under `data/pglite`. It is created on first run.
-- On Home, open one of the evidence collections. Inside an investigation, **Reset** in the top bar deletes it and reloads the collection fresh.
+Open `.env` and set **one** model key. Leave the other commented out.
+
+```bash
+OPENAI_API_KEY=sk-...
+# ANTHROPIC_API_KEY=sk-ant-...
+```
+
+`AUTH_DISABLED=true` is already set in the example file, so local use skips login. The database is a local PGlite store at `data/pglite`, created the first time the server starts. Nothing else has to be installed.
+
+```bash
+pnpm dev
+```
+
+That starts the app and opens http://localhost:8080. Use a vision-capable model if the agent should inspect image evidence itself. Testing used OpenAI GPT-6 Luna through the AI SDK engine.
 
 Other commands:
 
@@ -30,6 +44,30 @@ pnpm action <name> --flag value   # call any action from the CLI, e.g. load-case
 ```
 
 Built on `@agent-native/core`, `agentkit` and `toolkit` **0.226.0**, from the `chat` template.
+
+## Quick start
+
+The screenshots are from one worked investigation. The same layout is what you get after opening any collection or starting your own.
+
+**Home.** Start a new investigation with a title, the question you want answered, and the files that are the evidence (text, CSV or JSON records, and images). Or open an evidence collection that is already on disk. Collections live under `cases/<slug>/`. Inside an investigation, **More → Reset investigation…** deletes that investigation and reloads its collection fresh.
+
+**The workbench.** The question stays at the top. Sources sit on the left, the analytical instrument in the center, and the co-investigator on the right. Cited sources are marked so you can see what the agent has actually used. Ask it to examine the evidence, or press **Examine the evidence** when the stage is empty. It reads the sources, records cited findings, and builds an instrument such as this chronology.
+
+![Investigation workbench: sources on the left, a chronology in the center, and the co-investigator on the right](docs/screenshots/workspace.png)
+
+**Hypotheses and relationships.** Findings are grouped by standing. A supported hypothesis still shows how many artifacts support it and how many contradict it, and it stays **provisional** until you accept it. On a chronology, **Relationships** shows whether recorded times agree, and labels that result as an ordering of the records.
+
+![Hypotheses listed by standing beside a chronology relationships view](docs/screenshots/hypotheses-and-relationships.png)
+
+**Review.** The agent proposes. You decide what is established. **Review** opens everything still waiting: items that need a judgement, then routine findings you can accept together. Accepting a finding marks it established in the report. Provisional findings already inform the instruments either way.
+
+![Review drawer listing findings that need a judgement, each with Accept](docs/screenshots/review.png)
+
+**History.** Assessments are kept. **History** can be filtered to the investigator, the agent, or the system. When a hypothesis is supported or weakened, the entry names the artifacts it used and the reason. Earlier assessments stay in the list.
+
+![History panel showing successive hypothesis assessments with their reasons](docs/screenshots/history.png)
+
+**Report** writes up what is established, what is inferred, and what is still open. Each line cites the findings it relies on.
 
 ## How it is put together
 
