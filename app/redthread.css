@@ -292,6 +292,50 @@
   transform: rotate(90deg);
 }
 
+/* The workbench is a viewport-locked scroller. Print lays out that box and
+   stops, so a findings document longer than the screen comes out as one page.
+   Release the shell only while a report is on screen. */
+@media print {
+  @page {
+    margin: 16mm 14mm;
+  }
+
+  html,
+  body,
+  .rt-app:has(.rt-report),
+  .rt-report,
+  .rt-report-sheet {
+    display: block !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  .rt-app:has(.rt-report) {
+    background: white;
+  }
+
+  .rt-report-chrome {
+    display: none !important;
+  }
+
+  .rt-report-sheet article {
+    max-width: none;
+    padding: 0;
+  }
+
+  .rt-report li {
+    break-inside: avoid;
+  }
+
+  .rt-report h1,
+  .rt-report h3,
+  .rt-report .rt-kicker {
+    break-after: avoid;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rt-move,
   .rt-flip,

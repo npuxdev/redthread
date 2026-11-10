@@ -27,17 +27,20 @@ export function Report({ investigationId }: { investigationId: string }) {
   const rec = r.reconstruction as Reconstruction | null;
 
   return (
-    <div className="flex h-full flex-col">
-      <TopBar title={r.investigation.title}>
-        <BarButton icon={<ArrowLeftIcon />} onClick={() => navigate(`/i/${investigationId}`)}>
-          Back to workbench
-        </BarButton>
-        <BarButton icon={<ReaderIcon />} onClick={() => window.print()}>
-          Print
-        </BarButton>
-      </TopBar>
-      <div className="rt-scroll min-h-0 flex-1 overflow-auto">
+    <div className="rt-report flex h-full flex-col">
+      <div className="rt-report-chrome">
+        <TopBar title={r.investigation.title}>
+          <BarButton icon={<ArrowLeftIcon />} onClick={() => navigate(`/i/${investigationId}`)}>
+            Back to workbench
+          </BarButton>
+          <BarButton icon={<ReaderIcon />} onClick={() => window.print()}>
+            Print
+          </BarButton>
+        </TopBar>
+      </div>
+      <div className="rt-report-sheet rt-scroll min-h-0 flex-1 overflow-auto">
         <article className="mx-auto max-w-3xl px-8 py-10">
+          <p className="rt-mono mb-6 hidden text-[11px] tracking-wide text-muted-foreground print:block">{r.investigation.title}</p>
           <Kicker>Findings</Kicker>
           <h1 className="rt-serif mt-2 text-[26px] leading-tight">{r.investigation.question}</h1>
           <p className="rt-mono mt-2 text-[11px] text-muted-foreground">
@@ -68,7 +71,7 @@ export function Report({ investigationId }: { investigationId: string }) {
           ) : (
             <section className="mt-8 rounded-[6px] border border-dashed border-border px-5 py-4">
               <p className="text-[13px] text-muted-foreground">No reconstruction has been written. It must cite the findings it relies on.</p>
-              <div className="mt-3">
+              <div className="rt-report-chrome mt-3">
                 <Btn
                   size="sm"
                   onClick={() => {

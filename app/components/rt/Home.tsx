@@ -1,3 +1,4 @@
+import { appPath } from "@agent-native/core/client/api-path";
 import { useActionQuery } from "@agent-native/core/client/hooks";
 import { EnterIcon, PlusIcon, TrashIcon, UploadIcon } from "@radix-ui/react-icons";
 import { useEffect, useRef, useState } from "react";
@@ -24,6 +25,37 @@ import { TopBar } from "./TopBar";
 import { Btn, Field, inputClass, Kicker } from "./ui";
 
 const INVESTIGATION_PREVIEW = 4;
+const FOOTER_SRC = appPath("/footer-graphic.png");
+
+// Opaque region of the footer PNG. The drawing sits in a transparent margin.
+const FOOTER_FRAME = { image: { w: 2170, h: 725 }, bounds: { x: 0, y: 81, w: 2077, h: 615 } };
+
+function FramedGraphic({
+  src,
+  frame,
+  className,
+}: {
+  src: string;
+  frame: { image: { w: number; h: number }; bounds: { x: number; y: number; w: number; h: number } };
+  className?: string;
+}) {
+  const { image, bounds } = frame;
+  return (
+    <div aria-hidden="true" className={cn("relative overflow-hidden", className)} style={{ aspectRatio: `${bounds.w} / ${bounds.h}` }}>
+      <img
+        src={src}
+        alt=""
+        className="pointer-events-none absolute max-w-none select-none"
+        style={{
+          width: `${(image.w / bounds.w) * 100}%`,
+          height: `${(image.h / bounds.h) * 100}%`,
+          left: `${(-bounds.x / bounds.w) * 100}%`,
+          top: `${(-bounds.y / bounds.h) * 100}%`,
+        }}
+      />
+    </div>
+  );
+}
 
 const STATUS_LABEL: Record<InvestigationListStatus, string> = {
   open: "Open",
@@ -152,10 +184,9 @@ export function Home() {
   const canStart = form.title.trim().length > 0 && form.question.trim().length > 0 && !starting;
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="relative isolate flex h-full flex-col">
       <TopBar />
-      <div className="rt-scroll min-h-0 flex-1 overflow-auto">
-        <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-8 sm:px-8">
+      <div className="mx-auto w-full max-w-5xl shrink-0 px-4 pt-6 sm:px-8">
           <section>
             <Kicker>New investigation</Kicker>
             <form
@@ -258,7 +289,8 @@ export function Home() {
               </div>
             </form>
           </section>
-
+      </div>
+      <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col gap-8 overflow-auto px-4 py-8 sm:px-8">
           <section>
             <Kicker>Investigations</Kicker>
             <div className="mt-3 overflow-hidden rounded-[6px] border border-border bg-card">
@@ -362,7 +394,9 @@ export function Home() {
               ))}
             </div>
           </section>
-        </div>
+      </div>
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 flex justify-center opacity-50">
+        <FramedGraphic src={FOOTER_SRC} frame={FOOTER_FRAME} className="w-[min(100%,42rem)]" />
       </div>
       <AlertDialog
         open={pendingDelete != null}
