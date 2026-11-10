@@ -2,7 +2,8 @@ import { defineAction } from "@agent-native/core/action";
 import { readAppState } from "@agent-native/core/application-state";
 import { z } from "zod";
 
-import { loadState, unreviewedActivity } from "../server/lib/store.js";
+import { listCases } from "../server/lib/cases.js";
+import { listInvestigations, loadState, unreviewedActivity } from "../server/lib/store.js";
 
 export default defineAction({
   description:
@@ -14,13 +15,32 @@ export default defineAction({
     const navigation = (await readAppState("navigation")) as Record<string, unknown> | null;
     if (!navigation) return "No application state found. Is the app running?";
     const screen: Record<string, unknown> = { navigation };
+    if (navigation.view === "home") {
+      try {
+        const [investigations, evidenceCollections] = await Promise.all([listInvestigations(), listCases()]);
+        screen.investigations = investigations.map((row) => ({
+          id: row.id,
+          title: row.title,
+          question: row.question,
+          status: row.status,
+        }));
+        screen.evidenceCollections = evidenceCollections.map((row) => ({
+          slug: row.slug,
+          title: row.title,
+          sourceCount: row.sourceCount,
+        }));
+      } catch {
+        screen.investigations = null;
+        screen.evidenceCollections = null;
+      }
+    }
     const investigationId = typeof navigation.investigationId === "string" ? navigation.investigationId : null;
     if (investigationId) {
       try {
         const state = await loadState(investigationId);
         const pending = await unreviewedActivity(investigationId);
         const find = (id: unknown) =>
-          [...state.sources, ...state.artifacts, ...state.links, ...state.instruments].find((x) => x.id === id);
+          [...state.sources, ...state.artifacts, ...state.links, ...state.assumptions, ...state.instruments].find((x) => x.id === id);
         const active = find(navigation.instrumentId);
         const selected = find(navigation.selectedId);
         screen.investigation = {

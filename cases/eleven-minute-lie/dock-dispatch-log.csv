@@ -1,6 +1,0 @@
-time,ref,event,party,detail
-2026-11-06 14:10:00,CR-15,ARRIVAL,Kessler Fine Art Logistics,loan return crate; intake scan IS-88412; signed J. Pohl
-2026-11-06 16:25:00,CR-16,DEPARTURE,City Framing Co.,two empty frames for repair; contents inspected J. Pohl
-2026-11-06 20:39:05,CR-17,AUTHORIZATION,Director (M. Achterberg),departure authorized by electronic signature (mobile app)
-2026-11-06 20:41:30,CR-17,MANIFEST,Dock clerk (J. Pohl),manifest MF-2217 created; contents as declared by authorizer
-2026-11-06 20:53:12,CR-17,DEPARTURE,Kessler Fine Art Logistics,vehicle KX-4471 cleared dock gate; contents not inspected (sealed on arrival at dock)

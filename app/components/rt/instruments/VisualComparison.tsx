@@ -1,3 +1,4 @@
+import { Cross2Icon, Pencil1Icon } from "@radix-ui/react-icons";
 import { useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
@@ -5,7 +6,7 @@ import type { InstrumentRow } from "@shared/investigation";
 
 import type { Readout } from "../../../../server/lib/readout";
 import { useRtAction, useWorkbenchParams, type Workspace } from "../lib";
-import { Btn, Code, inputClass, Kicker } from "../ui";
+import { Btn, Code, inputClass, Kicker, SectionHead } from "../ui";
 
 type VisualReadout = Extract<Readout, { method: "visual_comparison" }>;
 type Region = { x: number; y: number; w: number; h: number };
@@ -22,7 +23,7 @@ export function VisualComparisonInstrument({ ws, instrument, readout }: { ws: Wo
 
   return (
     <div className="flex min-h-0 flex-col">
-      <div className="flex items-center gap-3 border-b border-border px-5 py-2">
+      <SectionHead title="Compare" hint="Drag on an image to mark a region, then record what you see." className="px-5">
         <div className="flex overflow-hidden rounded-[5px] border border-border text-[11.5px]">
           {(["side", "overlay"] as const).map((m) => (
             <button key={m} onClick={() => setMode(m)} className={cn("px-2.5 py-1", mode === m ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground")}>
@@ -41,9 +42,7 @@ export function VisualComparisonInstrument({ ws, instrument, readout }: { ws: Wo
             <input type="range" min={0} max={100} value={reveal} onChange={(e) => setReveal(Number(e.target.value))} className="w-36 accent-[hsl(var(--primary))]" />
           </label>
         ) : null}
-        <div className="flex-1" />
-        <span className="text-[11.5px] text-muted-foreground">Drag on an image to mark a region, then record what you see.</span>
-      </div>
+      </SectionHead>
 
       {mode === "side" ? (
         <div className="grid grid-cols-2 gap-px bg-border">
@@ -206,9 +205,11 @@ function ObservationForm({
         </label>
       ) : null}
       <Btn tone="primary" onClick={save} disabled={!label.trim() || record.pending}>
+        <Pencil1Icon />
         Record observation
       </Btn>
       <Btn tone="ghost" onClick={onDone}>
+        <Cross2Icon />
         Cancel
       </Btn>
     </div>
@@ -221,10 +222,10 @@ function ObservationList({ readout, ws }: { readout: VisualReadout; ws: Workspac
   const unique = readout.observations.filter((o) => (seen.has(o.id) ? false : (seen.add(o.id), true)));
   const code = new Map(ws.sources.map((s) => [s.id, s.code]));
   return (
-    <div className="px-5 py-3">
-      <Kicker>Recorded observations</Kicker>
+    <div className="border-t border-border">
+      <SectionHead title="Recorded observations" count={unique.length} className="px-5" />
       {unique.length ? (
-        <div className="mt-2 grid gap-1.5">
+        <div className="grid gap-1.5 px-5 py-3">
           {unique.map((o) => (
             <button key={o.id} onClick={() => set({ sel: o.id })} className="flex items-baseline gap-2 text-left text-[12.5px] hover:text-primary">
               <Code>{o.code}</Code>
@@ -234,7 +235,7 @@ function ObservationList({ readout, ws }: { readout: VisualReadout; ws: Workspac
           ))}
         </div>
       ) : (
-        <p className="mt-1 text-[12px] text-muted-foreground">None yet. A visible difference is a reason to investigate. It does not by itself establish what caused it.</p>
+        <p className="px-5 py-3 text-[12px] text-muted-foreground">None yet. A visible difference is a reason to investigate. It does not by itself establish what caused it.</p>
       )}
     </div>
   );

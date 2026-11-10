@@ -1,10 +1,11 @@
+import { CheckIcon, PlusIcon } from "@radix-ui/react-icons";
 import { useLayoutEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import type { ArtifactRow } from "@shared/investigation";
 
 import { STANDING_ORDER, standingOf, useRtAction, useWorkbenchParams, type Workspace } from "./lib";
-import { Btn, Code, inputClass, Kicker, StandingTag } from "./ui";
+import { Btn, Empty, EvidenceTag, inputClass, Kicker, StandingTag, StatusTag } from "./ui";
 
 /** Animates children keyed by data-flip from their previous position to the new one. */
 function useFlip(order: string) {
@@ -31,9 +32,11 @@ function useFlip(order: string) {
   return container;
 }
 
-export function Hypotheses({ ws }: { ws: Workspace }) {
+/** Competing explanations, listed by evidence standing. */
+export function Inquiries({ ws }: { ws: Workspace }) {
   const { selected, set } = useWorkbenchParams();
   const [adding, setAdding] = useState(false);
+  const accept = useRtAction("accept-artifacts");
   const hyps = ws.artifacts
     .filter((a) => a.type === "hypothesis" && a.status !== "rejected")
     .sort((a, b) => {
@@ -54,47 +57,60 @@ export function Hypotheses({ ws }: { ws: Workspace }) {
   };
 
   return (
-    <div className="border-b border-border bg-[hsl(var(--background))] px-4 py-2.5">
-      <div className="mb-2 flex items-center gap-3">
-        <Kicker>Lines of inquiry</Kicker>
-        <span className="text-[11px] text-muted-foreground">{hyps.length ? "ordered by standing" : "none proposed yet"}</span>
+    <div className="px-2 pb-4 pt-2">
+      <div className="mb-1.5 flex items-center px-1">
+        <Kicker>By standing</Kicker>
         <div className="flex-1" />
         <Btn size="sm" tone="ghost" onClick={() => setAdding((v) => !v)}>
-          + Hypothesis
+          <PlusIcon />
+          Hypothesis
         </Btn>
       </div>
       {adding ? <NewHypothesis ws={ws} onDone={() => setAdding(false)} /> : null}
-      <div ref={ref} className="rt-scroll flex gap-2 overflow-x-auto pb-1">
+      {!hyps.length && !adding ? <Empty>No competing explanations recorded yet.</Empty> : null}
+      <div ref={ref} className="grid gap-1.5">
         {hyps.map((h) => {
           const st = standingOf(h);
           const { s, c } = linkCounts(h.id);
           const retired = h.status === "superseded" || h.status === "refuted" || st === "refuted";
+          const proposal = h.status === "proposed";
+          const unsupported = st === "supported" && s === 0;
           return (
-            <button
+            <div
               key={h.id}
               data-flip={h.id}
-              onClick={() => set({ sel: h.id })}
               className={cn(
-                "group relative w-[250px] shrink-0 rounded-[5px] border bg-card px-3 py-2 text-left transition-[border-color,opacity] duration-300",
-                selected === h.id ? "border-primary" : "border-border hover:border-[hsl(var(--primary)/0.45)]",
-                st === "contradicted" && "border-l-[3px] border-l-[hsl(var(--rt-oxide))]",
-                st === "supported" && "border-l-[3px] border-l-[hsl(var(--rt-confirmed))]",
+                "relative rounded-[5px] border bg-card px-3 py-2 text-left transition-[border-color,opacity] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                selected === h.id ? "border-primary" : "border-border",
+                !proposal && st === "contradicted" && "border-l-[3px] border-l-[hsl(var(--rt-oxide))]",
+                !proposal && st === "supported" && s > 0 && "border-l-[3px] border-l-[hsl(var(--rt-confirmed))]",
                 retired && "rt-recede",
-                h.status === "proposed" && "rt-dashed",
+                proposal && "rt-dashed",
               )}
             >
-              <div className="flex items-center gap-2">
-                <Code>{h.code}</Code>
-                <StandingTag standing={st} />
-                {h.status === "proposed" ? <span className="text-[10px] uppercase tracking-wide text-[hsl(var(--rt-evidence))]">proposed</span> : null}
-                {h.reviewFlag ? <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[hsl(var(--rt-unresolved))]" title={h.reviewFlag} /> : null}
-              </div>
-              <div className="rt-serif rt-recede-text mt-1 line-clamp-2 text-[13.5px] leading-snug">{h.label}</div>
-              <div className="rt-mono mt-1.5 flex gap-3 text-[10px] text-muted-foreground">
-                <span>{s} supporting</span>
-                <span className={cn(c && "text-[hsl(var(--rt-oxide))]")}>{c} contradicting</span>
-              </div>
-            </button>
+              <button type="button" onClick={() => set({ sel: h.id })} className="block w-full text-left">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <EvidenceTag>{h.code}</EvidenceTag>
+                  <StandingTag standing={st} unsupported={unsupported} />
+                  {h.reviewFlag ? <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[hsl(var(--rt-unresolved))]" title={h.reviewFlag} /> : null}
+                </div>
+                <div className="rt-serif rt-recede-text mt-1 line-clamp-3 text-[14px] leading-snug">{h.label}</div>
+                <div className="rt-mono mt-1.5 flex gap-3 text-[11px] text-muted-foreground">
+                  <span className={cn(unsupported && "text-[hsl(var(--rt-unresolved))]")}>{unsupported ? "0 supporting links" : `${s} supporting`}</span>
+                  <span className={cn(c && "text-[hsl(var(--rt-oxide))]")}>{c} contradicting</span>
+                </div>
+              </button>
+              {proposal ? (
+                <div className="mt-1.5 flex items-center gap-2">
+                  <StatusTag status={h.status} actor={h.createdBy} />
+                  <div className="flex-1" />
+                  <Btn size="sm" disabled={accept.pending} onClick={() => accept.run({ investigationId: ws.investigation.id, refs: [h.id], reason: "Investigator accepted" })}>
+                    <CheckIcon />
+                    Accept
+                  </Btn>
+                </div>
+              ) : null}
+            </div>
           );
         })}
       </div>
@@ -118,6 +134,7 @@ function NewHypothesis({ ws, onDone }: { ws: Workspace; onDone: () => void }) {
     <div className="rt-arrive mb-2 flex gap-2">
       <input autoFocus value={label} onChange={(e) => setLabel(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder="State a testable explanation" className={inputClass} />
       <Btn tone="primary" onClick={save} disabled={!label.trim() || record.pending}>
+        <PlusIcon />
         Add
       </Btn>
     </div>

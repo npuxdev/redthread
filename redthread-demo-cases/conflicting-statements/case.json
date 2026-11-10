@@ -1,0 +1,72 @@
+{
+  "title": "The Conflicting Statements",
+  "question": "What caused the access-control alarm at the East Annex on 22 October, and do the available records support accusing the night cleaner of bypassing security?",
+  "summary": "Three witness accounts, door system records, a maintenance request, alarm event export and a guard tour report.",
+  "sources": [
+    {
+      "file": "01-security-report.txt",
+      "title": "Initial security incident summary",
+      "kind": "text",
+      "provenance": {
+        "origin": "East Annex Security",
+        "synthetic": "Fictional training evidence"
+      }
+    },
+    {
+      "file": "02-guard-statement.txt",
+      "title": "Guard statement: Rina Park",
+      "kind": "text",
+      "provenance": {
+        "origin": "Internal Security interview",
+        "synthetic": "Fictional training evidence"
+      }
+    },
+    {
+      "file": "03-cleaner-statement.txt",
+      "title": "Cleaner statement: Luis Ortega",
+      "kind": "text",
+      "provenance": {
+        "origin": "Facilities interview",
+        "synthetic": "Fictional training evidence"
+      }
+    },
+    {
+      "file": "04-technician-statement.txt",
+      "title": "Technician statement: Alex Rivera",
+      "kind": "text",
+      "provenance": {
+        "origin": "Facilities maintenance",
+        "synthetic": "Fictional training evidence"
+      }
+    },
+    {
+      "file": "05-door-access.csv",
+      "title": "East Annex door controller E2 access log",
+      "kind": "records",
+      "provenance": {
+        "origin": "Physical access controller",
+        "synthetic": "Fictional training evidence",
+        "note": "Credential events show card use, not identity proof; open sensor has no actor."
+      }
+    },
+    {
+      "file": "06-maintenance-ticket.txt",
+      "title": "Maintenance ticket MT-204: E2 closer",
+      "kind": "text",
+      "provenance": {
+        "origin": "Facilities CMMS",
+        "synthetic": "Fictional training evidence"
+      }
+    },
+    {
+      "file": "07-guard-tour.csv",
+      "title": "Guard tour checkpoints",
+      "kind": "records",
+      "provenance": {
+        "origin": "Guard patrol system",
+        "synthetic": "Fictional training evidence",
+        "note": "Checkpoint scan records presence of patrol credential at location, not a witnessed door interaction."
+      }
+    }
+  ]
+}

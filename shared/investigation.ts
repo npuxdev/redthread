@@ -259,3 +259,6 @@ export interface InvestigationRow {
   caseSlug: string | null;
   createdAt: string;
 }
+
+/** Standing of an investigation on the home list. `review` wins over `reported`. */
+export type InvestigationListStatus = "open" | "review" | "reported";

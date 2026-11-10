@@ -1,0 +1,5 @@
+job,time_PDT,event,identity,session,detail
+JOB-717,2026-10-19 00:01:55,start,maya.chen@northstar.example,sess-auto-81,nightly metadata index; noninteractive service refresh token
+JOB-717,2026-10-19 00:03:27,file opened,maya.chen@northstar.example,sess-auto-81,brief-v4.pdf
+JOB-717,2026-10-19 00:04:05,file opened,maya.chen@northstar.example,sess-auto-81,forecast.csv
+JOB-717,2026-10-19 00:04:29,finish,maya.chen@northstar.example,sess-auto-81,completed; no external upload action configured

@@ -21,6 +21,9 @@ export interface NavigationState {
   investigationId?: string;
   instrumentId?: string;
   selectedId?: string;
+  chronologyMode?: string;
+  chronologySpan?: string;
+  chronologyScope?: string;
 }
 
 const INVESTIGATION_PATH = /^\/i\/([^/]+)(\/report)?\/?$/;
@@ -39,6 +42,11 @@ export function useNavigationState() {
         investigationId: decodeURIComponent(m[1]!),
         ...(searchParams.get("instrument") ? { instrumentId: searchParams.get("instrument")! } : {}),
         ...(searchParams.get("sel") ? { selectedId: searchParams.get("sel")! } : {}),
+        ...(searchParams.get("chrono") === "relationships" || searchParams.get("chrono") === "time"
+          ? { chronologyMode: searchParams.get("chrono")! }
+          : {}),
+        ...(searchParams.get("span") ? { chronologySpan: searchParams.get("span")! } : {}),
+        ...(searchParams.get("scope") === "important" ? { chronologyScope: "important" } : {}),
       };
     },
     getCommandPath: (command) => {

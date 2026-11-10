@@ -4,8 +4,10 @@ import { cn } from "@/lib/utils";
 import type { InstrumentRow } from "@shared/investigation";
 
 import type { ManualMatch, ReconGroup, ReconRef, Reconciliation } from "../../../../server/lib/engine/records";
+import { Cross2Icon, Link2Icon, ResetIcon } from "@radix-ui/react-icons";
+
 import { useRtAction, useWorkbenchParams, type Workspace } from "../lib";
-import { Btn, Code, inputClass, Kicker } from "../ui";
+import { Btn, Code, inputClass } from "../ui";
 
 const KIND_LABEL: Record<ReconGroup["kind"], string> = {
   match: "Matched",
@@ -102,6 +104,7 @@ export function ReconciliationInstrument({ ws, instrument, data }: { ws: Workspa
             <>
               <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Why are these the same item?" className={cn(inputClass, "h-7 max-w-xs py-0 text-[12px]")} />
               <Btn size="sm" tone="primary" onClick={confirm} disabled={adjust.pending}>
+                <Link2Icon />
                 Match records
               </Btn>
             </>
@@ -109,6 +112,7 @@ export function ReconciliationInstrument({ ws, instrument, data }: { ws: Workspa
             <span className="text-muted-foreground">Pick one record from another source to match.</span>
           )}
           <Btn size="sm" tone="ghost" onClick={() => setPicked([])}>
+            <Cross2Icon />
             Clear
           </Btn>
         </div>
@@ -130,7 +134,7 @@ export function ReconciliationInstrument({ ws, instrument, data }: { ws: Workspa
           </thead>
           <tbody>
             {groups.map((g, i) => (
-              <tr key={`${g.kind}-${g.key}-${i}`} className="rt-arrive border-t border-border align-top" style={{ ["--rt-delay" as string]: `${Math.min(i, 12) * 18}ms` }}>
+              <tr key={`${g.kind}-${g.key}-${i}`} className="border-t border-border align-top">
                 <td className={cn("px-5 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em]", KIND_TONE[g.kind])}>
                   {KIND_LABEL[g.kind]}
                   {g.note ? <div className="mt-0.5 text-[10.5px] font-normal normal-case tracking-normal text-muted-foreground">{g.note}</div> : null}
@@ -159,6 +163,7 @@ export function ReconciliationInstrument({ ws, instrument, data }: { ws: Workspa
                 <td className="px-2 py-2">
                   {g.kind === "manual" ? (
                     <Btn size="sm" tone="ghost" onClick={() => unmatch(g)}>
+                      <ResetIcon />
                       Undo
                     </Btn>
                   ) : null}
@@ -169,12 +174,12 @@ export function ReconciliationInstrument({ ws, instrument, data }: { ws: Workspa
         </table>
         {!groups.length ? <div className="p-6 text-[12.5px] text-muted-foreground">Nothing in this category.</div> : null}
       </div>
-      <div className="border-t border-border px-5 py-2">
-        <Kicker className="inline">How to read this</Kicker>
-        <span className="ml-2 text-[11.5px] text-muted-foreground">
+      <details className="border-t border-border px-5 py-2">
+        <summary className="rt-kicker cursor-pointer select-none text-foreground/65">How to read this</summary>
+        <p className="mt-1.5 text-[11.5px] leading-relaxed text-muted-foreground">
           Keys are compared after normalizing case and separators. Near matches differ by a confusable character or a single edit. They may be the same item recorded differently, or different items.
-        </span>
-      </div>
+        </p>
+      </details>
     </div>
   );
 }

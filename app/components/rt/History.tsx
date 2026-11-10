@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import type { Actor } from "@shared/investigation";
 
 import { indexById, relativeTime, useWorkbenchParams, type Workspace } from "./lib";
-import { ActorTag, Code, Kicker } from "./ui";
+import { ActorTag, Code, Kicker, OverlayPanel } from "./ui";
 
 export function History({ ws, onClose }: { ws: Workspace; onClose: () => void }) {
   const [actor, setActor] = useState<Actor | "all">("all");
@@ -12,21 +12,22 @@ export function History({ ws, onClose }: { ws: Workspace; onClose: () => void })
   const { set } = useWorkbenchParams();
   const entries = [...ws.activity].reverse().filter((h) => actor === "all" || h.actor === actor);
   return (
-    <div className="rt-arrive absolute inset-y-0 right-0 z-30 flex w-[min(480px,92%)] flex-col border-l border-border bg-card shadow-[-12px_0_32px_-24px_hsl(var(--rt-graphite)/0.35)]">
-      <div className="flex items-center gap-3 border-b border-border px-5 py-2.5">
-        <Kicker>History</Kicker>
-        <div className="flex gap-1">
-          {(["all", "human", "agent", "system"] as const).map((a) => (
-            <button key={a} onClick={() => setActor(a)} className={cn("rounded px-1.5 py-0.5 text-[11px]", actor === a ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground")}>
-              {a === "human" ? "investigator" : a}
-            </button>
-          ))}
-        </div>
-        <div className="flex-1" />
-        <button onClick={onClose} className="rounded px-2 py-0.5 text-[12px] text-muted-foreground hover:bg-accent hover:text-foreground">
-          Close
-        </button>
-      </div>
+    <OverlayPanel
+      widthClass="w-[min(480px,92%)]"
+      onClose={onClose}
+      header={
+        <>
+          <Kicker>History</Kicker>
+          <div className="flex gap-1">
+            {(["all", "human", "agent", "system"] as const).map((a) => (
+              <button key={a} onClick={() => setActor(a)} className={cn("rounded px-1.5 py-0.5 text-[11px]", actor === a ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground")}>
+                {a === "human" ? "investigator" : a}
+              </button>
+            ))}
+          </div>
+        </>
+      }
+    >
       <ol className="rt-scroll min-h-0 flex-1 overflow-auto px-5 py-3">
         {entries.map((h) => (
           <li key={h.id} className="relative border-l border-border pb-3 pl-4">
@@ -57,6 +58,6 @@ export function History({ ws, onClose }: { ws: Workspace; onClose: () => void })
           </li>
         ))}
       </ol>
-    </div>
+    </OverlayPanel>
   );
 }

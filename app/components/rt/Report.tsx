@@ -1,5 +1,6 @@
 import { sendToAgentChat } from "@agent-native/core/client/agent-chat";
 import { useActionQuery } from "@agent-native/core/client/hooks";
+import { ArrowLeftIcon, ChatBubbleIcon, ReaderIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "react-router";
 
 import { cn } from "@/lib/utils";
@@ -27,9 +28,13 @@ export function Report({ investigationId }: { investigationId: string }) {
 
   return (
     <div className="flex h-full flex-col">
-      <TopBar title={r.investigation.title} question={r.investigation.question}>
-        <BarButton onClick={() => navigate(`/i/${investigationId}`)}>Back to workbench</BarButton>
-        <BarButton onClick={() => window.print()}>Print</BarButton>
+      <TopBar title={r.investigation.title}>
+        <BarButton icon={<ArrowLeftIcon />} onClick={() => navigate(`/i/${investigationId}`)}>
+          Back to workbench
+        </BarButton>
+        <BarButton icon={<ReaderIcon />} onClick={() => window.print()}>
+          Print
+        </BarButton>
       </TopBar>
       <div className="rt-scroll min-h-0 flex-1 overflow-auto">
         <article className="mx-auto max-w-3xl px-8 py-10">
@@ -79,6 +84,7 @@ export function Report({ investigationId }: { investigationId: string }) {
                     );
                   }}
                 >
+                  <ChatBubbleIcon />
                   Ask the co-investigator to write it
                 </Btn>
               </div>

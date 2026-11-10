@@ -1,0 +1,4 @@
+FAC-911 — SecureGate gateway clock drift
+Opened 2026-10-18 16:20 PDT; checked 2026-10-19 08:10 PDT.
+SecureGate node SGW-2 is 11 minutes 00 seconds FAST relative to NTP (tested at 08:10 PDT October 19). Offset appears stable over the overnight interval according to heartbeat checks at 23:00 and 06:00. No correction was applied during the incident window.
+To derive wall time from SecureGate device time during the incident, subtract 11 minutes. No evidence that IdP, job scheduler or DLP clocks share this drift.

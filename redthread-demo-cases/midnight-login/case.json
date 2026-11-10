@@ -1,0 +1,84 @@
+{
+  "title": "The Midnight Login",
+  "question": "Did Maya Chen access confidential files after hours on 18 October 2026? What does the evidence establish about the account activity, and what remains unexplained?",
+  "summary": "Security incident: after-hours account access, automation logs, physical access, an identity system, a DLP alert and a clock calibration ticket.",
+  "sources": [
+    {
+      "file": "01-incident-referral.txt",
+      "title": "SOC incident referral IR-284",
+      "kind": "text",
+      "provenance": {
+        "origin": "Security Operations",
+        "synthetic": "Fictional training evidence"
+      }
+    },
+    {
+      "file": "02-securegate-audit.csv",
+      "title": "SecureGate object audit export",
+      "kind": "records",
+      "provenance": {
+        "origin": "SecureGate storage gateway",
+        "synthetic": "Fictional training evidence",
+        "note": "SecureGate device clock, not verified wall time; see facilities calibration."
+      }
+    },
+    {
+      "file": "03-idp-authentication.csv",
+      "title": "Identity provider authentication log",
+      "kind": "records",
+      "provenance": {
+        "origin": "Northstar IdP",
+        "synthetic": "Fictional training evidence",
+        "note": "IdP synced to NTP; example IP 198.51.100.77 is documentation-only TEST-NET."
+      }
+    },
+    {
+      "file": "04-automation-schedule.csv",
+      "title": "Overnight export scheduler logs",
+      "kind": "records",
+      "provenance": {
+        "origin": "Engineering job scheduler",
+        "synthetic": "Fictional training evidence",
+        "note": "Scheduler on NTP-synced infrastructure."
+      }
+    },
+    {
+      "file": "05-clock-calibration.txt",
+      "title": "SecureGate clock calibration ticket FAC-911",
+      "kind": "text",
+      "provenance": {
+        "origin": "Infrastructure Operations",
+        "synthetic": "Fictional training evidence"
+      }
+    },
+    {
+      "file": "06-building-access.csv",
+      "title": "Building access events",
+      "kind": "records",
+      "provenance": {
+        "origin": "Office physical security",
+        "synthetic": "Fictional training evidence",
+        "note": "Badge presence is not proof of who used a remote account."
+      }
+    },
+    {
+      "file": "07-dlp-events.csv",
+      "title": "Outbound transfer alert details",
+      "kind": "records",
+      "provenance": {
+        "origin": "Data loss prevention service",
+        "synthetic": "Fictional training evidence",
+        "note": "DLP synced to NTP; policy alert records an outbound upload attempt classified successful by DLP transport; destination ownership unverified."
+      }
+    },
+    {
+      "file": "08-employee-statement.txt",
+      "title": "Interview memorandum: Maya Chen",
+      "kind": "text",
+      "provenance": {
+        "origin": "HR investigator",
+        "synthetic": "Fictional training evidence"
+      }
+    }
+  ]
+}

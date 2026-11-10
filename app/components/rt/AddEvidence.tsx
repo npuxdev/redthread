@@ -1,38 +1,15 @@
 import { sendToAgentChat } from "@agent-native/core/client/agent-chat";
+import { Cross2Icon, PlusIcon, TrashIcon, UploadIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import type { SourceKind } from "@shared/investigation";
 
 import { useRtAction, type Workspace } from "./lib";
+import { readEvidenceFiles, type EvidenceDraft } from "./read-evidence-file";
 import { Btn, Field, inputClass, Kicker } from "./ui";
 
-interface Pending {
-  kind: SourceKind;
-  title: string;
-  content: string;
-  mediaType?: string | undefined;
-  provenance: Record<string, unknown>;
-}
-
-function readFile(file: File): Promise<Pending> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    const provenance = { file: file.name, obtained: new Date().toISOString().slice(0, 10) };
-    const title = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
-    reader.onerror = () => reject(reader.error);
-    if (file.type.startsWith("image/")) {
-      reader.onload = () => resolve({ kind: "image", title, content: String(reader.result), mediaType: file.type, provenance });
-      reader.readAsDataURL(file);
-    } else {
-      reader.onload = () => {
-        const text = String(reader.result);
-        const records = /\.(csv|json)$/i.test(file.name);
-        resolve({ kind: records ? "records" : "text", title, content: text, mediaType: file.type || undefined, provenance });
-      };
-      reader.readAsText(file);
-    }
-  });
-}
+type Pending = EvidenceDraft;
 
 export function AddEvidence({ ws, onClose }: { ws: Workspace; onClose: () => void }) {
   const [items, setItems] = useState<Pending[]>([]);
@@ -42,6 +19,12 @@ export function AddEvidence({ ws, onClose }: { ws: Workspace; onClose: () => voi
   const [busy, setBusy] = useState(false);
 
   const all = [...items, ...(paste.content.trim() ? [{ kind: "text" as const, title: paste.title.trim() || "Pasted statement", content: paste.content, provenance: paste.origin ? { origin: paste.origin } : {} }] : [])];
+
+  const takeFiles = async (files: File[]) => {
+    const { drafts, errors } = await readEvidenceFiles(files);
+    if (drafts.length) setItems((current) => [...current, ...drafts]);
+    for (const message of errors) toast.error(message);
+  };
 
   const submit = async () => {
     setBusy(true);
@@ -74,10 +57,10 @@ export function AddEvidence({ ws, onClose }: { ws: Workspace; onClose: () => voi
             onDragOver={(e) => e.preventDefault()}
             onDrop={async (e) => {
               e.preventDefault();
-              const files = [...e.dataTransfer.files];
-              setItems([...items, ...(await Promise.all(files.map(readFile)))]);
+              await takeFiles([...e.dataTransfer.files]);
             }}
           >
+            <UploadIcon className="mb-1.5 size-4" />
             Drop files here or click to choose
             <input
               type="file"
@@ -85,8 +68,7 @@ export function AddEvidence({ ws, onClose }: { ws: Workspace; onClose: () => voi
               accept=".txt,.md,.csv,.json,image/*"
               className="hidden"
               onChange={async (e) => {
-                const files = [...(e.target.files ?? [])];
-                setItems([...items, ...(await Promise.all(files.map(readFile)))]);
+                await takeFiles([...(e.target.files ?? [])]);
                 e.target.value = "";
               }}
             />
@@ -104,6 +86,7 @@ export function AddEvidence({ ws, onClose }: { ws: Workspace; onClose: () => voi
                     </select>
                   ) : null}
                   <Btn size="sm" tone="ghost" onClick={() => setItems(items.filter((_, j) => j !== i))}>
+                    <TrashIcon />
                     Remove
                   </Btn>
                 </li>
@@ -127,9 +110,11 @@ export function AddEvidence({ ws, onClose }: { ws: Workspace; onClose: () => voi
           </label>
           <div className="flex-1" />
           <Btn tone="ghost" onClick={onClose}>
+            <Cross2Icon />
             Cancel
           </Btn>
           <Btn tone="primary" disabled={!all.length || busy} onClick={submit}>
+            <PlusIcon />
             {busy ? "Adding…" : `Add ${all.length || ""} source${all.length === 1 ? "" : "s"}`}
           </Btn>
         </div>

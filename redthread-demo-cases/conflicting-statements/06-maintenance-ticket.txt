@@ -1,0 +1,2 @@
+Ticket MT-204 | opened 2026-10-21 13:44 PDT
+Complaint: E2 service door sometimes remains ajar after release. Technician A. Rivera inspected on 2026-10-21 at 16:40; closer replacement required, part backordered. STATUS: OPEN at time of alarm. No completed repair or follow-up door test recorded by 2026-10-22 21:18.

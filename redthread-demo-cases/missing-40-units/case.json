@@ -1,0 +1,92 @@
+{
+  "title": "The Missing 40 Units",
+  "question": "A customer ordered 200 handheld scanners but received only 160. Where does the earliest evidenced inventory discrepancy arise, and what can we conclude about custody?",
+  "summary": "A single shipment with sales order, pack verification, carton scale readings, dock handoff, carrier scans, receiver count and interested-party statements.",
+  "sources": [
+    {
+      "file": "01-sales-order.txt",
+      "title": "Sales order SO-4811 and invoice",
+      "kind": "text",
+      "provenance": {
+        "origin": "Cedar Supply sales operations",
+        "synthetic": "Fictional training evidence"
+      }
+    },
+    {
+      "file": "02-pick-verification.csv",
+      "title": "Warehouse picking verification",
+      "kind": "records",
+      "provenance": {
+        "origin": "Cedar Supply WMS",
+        "synthetic": "Fictional training evidence",
+        "note": "WMS pick scans are pre-seal, before carton final pack and dock handoff."
+      }
+    },
+    {
+      "file": "03-checkweigher.csv",
+      "title": "Post-pack carton checkweigher",
+      "kind": "records",
+      "provenance": {
+        "origin": "Cedar Supply conveyor CW-4",
+        "synthetic": "Fictional training evidence",
+        "note": "At packing, expected gross approx 9.6 kg/carton; empty cartons/packing material approx 0.6 kg."
+      }
+    },
+    {
+      "file": "04-dock-event-log.csv",
+      "title": "Dock handling and label event log",
+      "kind": "records",
+      "provenance": {
+        "origin": "Cedar Supply dock system",
+        "synthetic": "Fictional training evidence",
+        "note": "Dock events in local PDT."
+      }
+    },
+    {
+      "file": "05-carrier-manifest.txt",
+      "title": "Carrier pickup manifest CT-9802",
+      "kind": "text",
+      "provenance": {
+        "origin": "Pioneer Logistics",
+        "synthetic": "Fictional training evidence"
+      }
+    },
+    {
+      "file": "06-carrier-tracking.csv",
+      "title": "Carrier scan and handling log",
+      "kind": "records",
+      "provenance": {
+        "origin": "Pioneer Logistics TMS",
+        "synthetic": "Fictional training evidence",
+        "note": "Carton-count scans are not proof of unit contents."
+      }
+    },
+    {
+      "file": "07-receiving-report.txt",
+      "title": "Customer receiving discrepancy report",
+      "kind": "text",
+      "provenance": {
+        "origin": "Harbor Retail receiving",
+        "synthetic": "Fictional training evidence"
+      }
+    },
+    {
+      "file": "08-warehouse-supervisor.txt",
+      "title": "Warehouse supervisor response",
+      "kind": "text",
+      "provenance": {
+        "origin": "Cedar Supply warehouse",
+        "synthetic": "Fictional training evidence"
+      }
+    },
+    {
+      "file": "09-carrier-response.txt",
+      "title": "Carrier dispute response",
+      "kind": "text",
+      "provenance": {
+        "origin": "Pioneer Logistics claims",
+        "synthetic": "Fictional training evidence"
+      }
+    }
+  ]
+}

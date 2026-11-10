@@ -3,7 +3,7 @@ import {
   useActionMutation,
   useActionQuery,
 } from "@agent-native/core/client/hooks";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 
@@ -58,21 +58,31 @@ export function useRtAction<TVars extends Record<string, unknown>, TResult = unk
   return { run, pending: (m as unknown as { isPending: boolean }).isPending };
 }
 
-/** Selection and active instrument live in the URL so the agent sees them too. */
+/** Selection, the active instrument, and chronology framing live in the URL so the agent sees them too. */
 export function useWorkbenchParams() {
   const [params, setParams] = useSearchParams();
   const selected = params.get("sel");
   const instrument = params.get("instrument");
   const highlight = params.get("hl");
+  const chrono = params.get("chrono");
+  const span = params.get("span");
+  const scope: "all" | "important" = params.get("scope") === "important" ? "important" : "all";
   const set = useCallback(
-    (patch: { sel?: string | null; instrument?: string | null; hl?: string | null }) => {
+    (patch: {
+      sel?: string | null;
+      instrument?: string | null;
+      hl?: string | null;
+      chrono?: string | null;
+      span?: string | null;
+      scope?: "all" | "important" | null;
+    }) => {
       if (patch.sel !== undefined && patch.hl === undefined) patch = { ...patch, hl: null };
       setParams(
         (prev) => {
           const next = new URLSearchParams(prev);
           for (const [k, v] of Object.entries(patch)) {
             if (v === undefined) continue;
-            if (v === null) next.delete(k);
+            if (v === null || v === "") next.delete(k);
             else next.set(k, v);
           }
           return next;
@@ -82,7 +92,7 @@ export function useWorkbenchParams() {
     },
     [setParams],
   );
-  return { selected, instrument, highlight, set };
+  return { selected, instrument, highlight, chrono, span, scope, set };
 }
 
 export function indexById(ws: Workspace) {
@@ -119,4 +129,150 @@ export function relativeTime(iso: string) {
   if (d < 3600) return `${Math.floor(d / 60)}m ago`;
   if (d < 86400) return `${Math.floor(d / 3600)}h ago`;
   return new Date(iso).toLocaleDateString();
+}
+
+export function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const apply = () => setMatches(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, [query]);
+  return matches;
+}
+
+export function useStoredFlag(key: string, fallback = false) {
+  const [value, setValue] = useState(fallback);
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(key);
+      if (raw === "1" || raw === "0") setValue(raw === "1");
+    } catch {
+      // Ignore storage access errors.
+    }
+  }, [key]);
+  const update = useCallback(
+    (next: boolean | ((v: boolean) => boolean)) => {
+      setValue((prev) => {
+        const resolved = typeof next === "function" ? next(prev) : next;
+        try {
+          window.localStorage.setItem(key, resolved ? "1" : "0");
+        } catch {
+          // Ignore storage access errors.
+        }
+        return resolved;
+      });
+    },
+    [key],
+  );
+  return [value, update] as const;
+}
+
+export function useStoredNumber(key: string, fallback: number, min: number, max: number) {
+  const [value, setValue] = useState(fallback);
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(key);
+      const n = raw == null ? NaN : Number(raw);
+      if (Number.isFinite(n)) setValue(Math.min(max, Math.max(min, Math.round(n))));
+    } catch {
+      // Ignore storage access errors.
+    }
+  }, [key, min, max]);
+  const update = useCallback(
+    (next: number | ((v: number) => number)) => {
+      setValue((prev) => {
+        const resolved = typeof next === "function" ? next(prev) : next;
+        const clamped = Math.min(max, Math.max(min, Math.round(resolved)));
+        try {
+          window.localStorage.setItem(key, String(clamped));
+        } catch {
+          // Ignore storage access errors.
+        }
+        return clamped;
+      });
+    },
+    [key, min, max],
+  );
+  return [value, update] as const;
+}
+
+const RETIRED = new Set(["rejected", "refuted", "superseded"]);
+
+export interface JudgementItem {
+  id: string;
+  kind: "artifact" | "assumption";
+  code: string;
+  label: string;
+  why: string;
+  acceptable: boolean;
+}
+
+/**
+ * Splits what awaits the investigator into routine proposals, which can be
+ * accepted together, and items that need an individual decision. Distinct
+ * from evidence standing and from changes the agent still needs to reassess.
+ */
+export function reviewQueue(ws: Workspace) {
+  const contradicted = new Set<string>();
+  for (const l of ws.links) {
+    if (l.relation !== "contradicts" || RETIRED.has(l.status)) continue;
+    contradicted.add(l.fromId);
+    contradicted.add(l.toId);
+  }
+  const judgement: JudgementItem[] = [];
+  const routine: ArtifactRow[] = [];
+  for (const a of ws.artifacts) {
+    if (RETIRED.has(a.status)) continue;
+    const proposed = a.status === "proposed";
+    const basis = (a.attrs.basis as string[] | undefined) ?? [];
+    const why = a.reviewFlag
+      ? a.reviewFlag
+      : !proposed
+        ? null
+        : a.type === "hypothesis"
+          ? "Competing explanation"
+          : contradicted.has(a.id)
+            ? "Contradicted by other evidence"
+            : a.epistemic === "speculation"
+              ? "Speculation without direct support"
+              : !a.citations.length && !basis.length
+                ? "No citation"
+                : null;
+    if (why) judgement.push({ id: a.id, kind: "artifact", code: a.code, label: a.label, why, acceptable: proposed });
+    else if (proposed) routine.push(a);
+  }
+  const touched = new Set(ws.activity.filter((h) => h.actor === "human").flatMap((h) => h.targetIds));
+  for (const a of ws.assumptions) {
+    if (a.active && a.createdBy === "agent" && !touched.has(a.id)) {
+      judgement.push({ id: a.id, kind: "assumption", code: a.code, label: a.label, why: "Changes how times are read", acceptable: false });
+    }
+  }
+  return { judgement, routine, total: judgement.length + routine.length };
+}
+
+export interface Assessment {
+  verdict: string;
+  tone: "open" | "leaning" | "written";
+  leading: ArtifactRow | null;
+  inquiries: number;
+  needed: ArtifactRow | null;
+  openQuestions: number;
+}
+
+/** Where the investigation question stands, derived from current state. Never stronger than the evidence links behind it. */
+export function currentAssessment(ws: Workspace): Assessment {
+  const hyps = ws.artifacts.filter((a) => a.type === "hypothesis" && !RETIRED.has(a.status) && standingOf(a) !== "refuted");
+  const supporting = (id: string) => ws.links.some((l) => l.toId === id && l.relation === "supports" && !RETIRED.has(l.status));
+  const ranked = [...hyps].sort((a, b) => STANDING_ORDER.indexOf(standingOf(a)) - STANDING_ORDER.indexOf(standingOf(b)));
+  const leading = ranked.find((h) => standingOf(h) === "supported" && supporting(h.id)) ?? null;
+  const questions = ws.artifacts.filter((a) => a.type === "question" && !RETIRED.has(a.status));
+  const rec = ws.investigation.reconstruction as { summary?: string } | null;
+  const base = { leading, inquiries: hyps.length, needed: questions[0] ?? null, openQuestions: questions.length };
+  if (rec?.summary) return { ...base, verdict: rec.summary, tone: "written" };
+  if (leading) return { ...base, verdict: `Leaning toward ${leading.code}: ${leading.label}`, tone: "leaning" };
+  if (!ws.artifacts.length) return { ...base, verdict: "Not yet examined", tone: "open" };
+  return { ...base, verdict: "Unconfirmed", tone: "open" };
 }

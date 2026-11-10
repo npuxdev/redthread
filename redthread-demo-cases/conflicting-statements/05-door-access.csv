@@ -1,0 +1,6 @@
+time_PDT,door,event,credential,result
+2026-10-22 21:07:14,E2,badge granted,LORTEGA-21,unlock granted
+2026-10-22 21:07:22,E2,door closed,none,closed sensor
+2026-10-22 21:16:31,E2,door contact open,none,open sensor
+2026-10-22 21:18:01,E2,door held open threshold,none,alarm
+2026-10-22 21:18:20,E2,door contact closed,none,cleared

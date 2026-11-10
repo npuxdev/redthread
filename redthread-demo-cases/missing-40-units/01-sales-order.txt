@@ -1,0 +1,4 @@
+CEDAR SUPPLY | SO-4811 | Customer: Harbor Retail | 2026-10-20
+Item: handheld barcode scanner HS-20 | ordered quantity: 200 units
+Packaging specification: 20 units/carton, nominal 9.6 kg gross per sealed carton, ten cartons numbered C01–C10.
+Invoice INV-4811 billed 200 units. Invoice issue time 2026-10-20 14:10 PDT. Invoice quantity reflects the sales order and is not an independent physical count.

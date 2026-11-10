@@ -1,0 +1,3 @@
+Interview memorandum — 2026-10-19 11:25 PDT
+Maya Chen: "I left around six. I was not using company documents at midnight. I set up the nightly metadata indexing job last week under my account, which was approved as temporary. I did not send anything to an outside file-sharing site."
+Interviewer note: Chen says her browser session remained logged in on a home laptop. Her denial was not independently verified. She provided no home device logs. This is a statement, not a finding.

@@ -1,0 +1,4 @@
+event_id,time_PDT,principal,session_id,auth_method,client,ip_address,outcome
+ID-600,2026-10-19 00:02:03,maya.chen@northstar.example,sess-auto-81,service-refresh-token,build-runner-03,10.48.2.14,success
+ID-601,2026-10-19 00:13:40,maya.chen@northstar.example,sess-web-19,existing-browser-cookie,web-client,198.51.100.77,success
+ID-602,2026-10-19 00:14:01,maya.chen@northstar.example,sess-web-19,none-reuse,web-client,198.51.100.77,session continued

@@ -1,0 +1,3 @@
+Statement by OP-12, shift supervisor, 2026-10-22:
+"We picked all 200 and loaded ten cartons. The checkweigher sometimes flags cartons because the display sticks; I overrode C08 and C09. I did not open them. The carrier must have lost the items after pickup."
+This statement was requested after the receiving dispute. There is no direct observation in the statement of the cartons' contents at carrier handoff.

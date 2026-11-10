@@ -16,6 +16,7 @@ import {
   type ImpactSet,
   type InstrumentMethod,
   type InstrumentRow,
+  type InvestigationListStatus,
   type InvestigationRow,
   type LinkRow,
   type Relation,
@@ -149,8 +150,20 @@ export interface InvestigationState {
 
 export async function listInvestigations() {
   const db = getDb();
-  const rows = await db.select().from(schema.investigations);
-  return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const [rows, pending] = await Promise.all([
+    db.select().from(schema.investigations),
+    db
+      .select({ investigationId: schema.activity.investigationId })
+      .from(schema.activity)
+      .where(isNull(schema.activity.reviewedAt)),
+  ]);
+  const needsReview = new Set(pending.map((row) => row.investigationId));
+  return rows
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .map(({ reconstruction, ...row }) => ({
+      ...row,
+      status: (needsReview.has(row.id) ? "review" : reconstruction ? "reported" : "open") satisfies InvestigationListStatus,
+    }));
 }
 
 export async function loadState(investigationId: string): Promise<InvestigationState> {
@@ -367,17 +380,19 @@ export async function createInvestigation(input: { title: string; question: stri
 
 export async function deleteInvestigation(investigationId: string) {
   const db = getDb();
-  for (const t of [
-    schema.sources,
-    schema.artifacts,
-    schema.links,
-    schema.assumptions,
-    schema.instruments,
-    schema.activity,
-  ]) {
-    await db.delete(t).where(eq(t.investigationId, investigationId));
-  }
-  await db.delete(schema.investigations).where(eq(schema.investigations.id, investigationId));
+  await db.transaction(async (tx) => {
+    for (const t of [
+      schema.sources,
+      schema.artifacts,
+      schema.links,
+      schema.assumptions,
+      schema.instruments,
+      schema.activity,
+    ]) {
+      await tx.delete(t).where(eq(t.investigationId, investigationId));
+    }
+    await tx.delete(schema.investigations).where(eq(schema.investigations.id, investigationId));
+  });
 }
 
 export async function addSource(
@@ -681,6 +696,44 @@ export async function reviseArtifact(
       impact,
     });
     return { artifact: { ...current, ...patch, citations: next.citations ?? [], attrs: next.attrs ?? {} }, impact };
+  });
+}
+
+/**
+ * Accept several proposals in one decision. Proposals already inform the
+ * instruments, so acceptance changes no readout and flags no dependents.
+ */
+export async function acceptArtifacts(input: { investigationId: string; refs: string[]; reason: string }, actor: Actor) {
+  if (actor === "agent") {
+    throw new InvestigationError("Only the investigator can accept artifacts. Leave them proposed and explain why they should be accepted.");
+  }
+  return withLock(input.investigationId, async () => {
+    const state = await loadState(input.investigationId);
+    const targets: ArtifactRow[] = [];
+    for (const ref of input.refs) {
+      const id = resolveRef(state, ref);
+      const artifact = state.artifacts.find((a) => a.id === id);
+      if (!artifact) throw new InvestigationError(`Artifact ${ref} not found`);
+      if (artifact.status === "proposed" && !targets.includes(artifact)) targets.push(artifact);
+    }
+    if (!targets.length) return { accepted: [] as string[] };
+    const db = getDb();
+    const at = now();
+    for (const a of targets) {
+      await db.update(schema.artifacts).set({ status: "accepted", updatedAt: at }).where(eq(schema.artifacts.id, a.id));
+    }
+    const codes = targets.map((a) => a.code);
+    await logActivity({
+      investigationId: input.investigationId,
+      actor,
+      action: "accept-artifacts",
+      summary: codes.length === 1 ? `Accepted ${codes[0]}` : `Accepted ${codes.length} findings: ${codes.join(", ")}`,
+      targetIds: targets.map((a) => a.id),
+      before: { status: "proposed" },
+      after: { status: "accepted" },
+      reason: input.reason,
+    });
+    return { accepted: codes };
   });
 }
 

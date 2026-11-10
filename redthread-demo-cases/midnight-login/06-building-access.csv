@@ -1,0 +1,4 @@
+event_id,time_PDT,badge,reader,direction,result
+BA-330,2026-10-18 17:58:10,MCHEN-018,Floor 3 exit,out,allowed
+BA-331,2026-10-18 18:04:13,MCHEN-018,Garage pedestrian exit,out,allowed
+BA-332,2026-10-19 07:46:22,MCHEN-018,Main entrance,in,allowed

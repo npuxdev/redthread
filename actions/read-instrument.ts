@@ -7,7 +7,7 @@ import { loadState, resolveRef, saveAgentSnapshot } from "../server/lib/store.js
 
 export default defineAction({
   description:
-    "Read an instrument's current computed result and what changed since you last read it (events that moved, orderings that flipped, matches the investigator made). Use this to interpret the investigator's manipulations.",
+    "Read an instrument's current computed result and what changed since you last read it (events that moved, orderings that flipped, matches the investigator made). Use this to interpret the investigator's manipulations. A chronology readout is already in corrected-time order. To change the open view, navigate with chrono=sequence|relationships|time, scope=important, and span=<id-or-code>,<id-or-code> rather than rebuilding the instrument.",
   schema: z.object({ investigationId: z.string(), ref: z.string().describe("Instrument id or code") }),
   run: async ({ investigationId, ref }, ctx) => {
     const state = await loadState(investigationId);

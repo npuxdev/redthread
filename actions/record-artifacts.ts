@@ -21,7 +21,7 @@ Give items a "ref" to link them within the same batch; links may also reference 
         z.object({
           ref: z.string().optional().describe("Batch-local name used by links in this call"),
           type: ArtifactType,
-          label: z.string().min(1).describe("Short, specific statement"),
+          label: z.string().min(1).describe("Short, specific statement. For an event, name what happened, not the timestamp field or column."),
           body: z.string().optional().describe("Detail, reasoning, or caveats"),
           epistemic: Epistemic,
           confidence: z.number().int().min(0).max(100).optional(),

@@ -1,32 +1,34 @@
 import { sendToAgentChat } from "@agent-native/core/client/agent-chat";
+import { ChatBubbleIcon, CheckIcon, Cross2Icon, Link2Icon, Pencil1Icon } from "@radix-ui/react-icons";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
-import { type ArtifactRow, type ArtifactStatus, type Citation, type LinkRow, RELATIONS, type Relation, type SourceRow, type Standing } from "@shared/investigation";
+import { type ArtifactRow, type ArtifactStatus, type AssumptionRow, type Citation, type LinkRow, RELATIONS, type Relation, type SourceRow, type Standing } from "@shared/investigation";
 
-import { formatClock, indexById, relativeTime, standingOf, useRtAction, useWorkbenchParams, type Workspace } from "./lib";
-import { ActorTag, Btn, Code, EpistemicMark, inputClass, Kicker, StandingTag, StatusTag } from "./ui";
+import { formatClock, indexById, relativeTime, standingOf, useRtAction, useStoredNumber, useWorkbenchParams, type Workspace } from "./lib";
+import { ActorTag, Btn, Code, EpistemicMark, EvidenceTag, inputClass, Kicker, OverlayPanel, StandingTag, StatusTag } from "./ui";
 
 export function Inspector({ ws }: { ws: Workspace }) {
   const { selected, set } = useWorkbenchParams();
+  const [width, setWidth] = useStoredNumber("redthread.inspector.width", 480, 360, 720);
   if (!selected) return null;
   const source = ws.sources.find((s) => s.id === selected);
   const artifact = ws.artifacts.find((a) => a.id === selected);
   const link = ws.links.find((l) => l.id === selected);
-  if (!source && !artifact && !link) return null;
+  const assumption = ws.assumptions.find((a) => a.id === selected);
+  if (!source && !artifact && !link && !assumption) return null;
   return (
-    <div className="rt-arrive absolute inset-y-0 right-0 z-30 flex w-[min(560px,92%)] flex-col border-l border-border bg-card shadow-[-12px_0_32px_-24px_hsl(var(--rt-graphite)/0.35)]">
-      <div className="flex items-center gap-2 border-b border-border px-5 py-2.5">
-        <Kicker>{source ? "Source record" : link ? "Relationship" : artifact!.type}</Kicker>
-        <div className="flex-1" />
-        <button onClick={() => set({ sel: null })} className="rounded px-2 py-0.5 text-[12px] text-muted-foreground hover:bg-accent hover:text-foreground" aria-label="Close inspector">
-          Close
-        </button>
-      </div>
+    <OverlayPanel
+      onClose={() => set({ sel: null })}
+      modal={false}
+      width={width}
+      onResize={(dx) => setWidth((w) => w - dx)}
+      header={<Kicker>{source ? "Source record" : link ? "Relationship" : assumption ? "Assumption" : artifact!.type}</Kicker>}
+    >
       <div className="rt-scroll min-h-0 flex-1 overflow-auto">
-        {source ? <SourceView ws={ws} source={source} /> : artifact ? <ArtifactView ws={ws} a={artifact} /> : <LinkView ws={ws} l={link!} />}
+        {source ? <SourceView ws={ws} source={source} /> : artifact ? <ArtifactView ws={ws} a={artifact} /> : assumption ? <AssumptionView ws={ws} a={assumption} /> : <LinkView ws={ws} l={link!} />}
       </div>
-    </div>
+    </OverlayPanel>
   );
 }
 
@@ -74,18 +76,21 @@ function SourceView({ ws, source }: { ws: Workspace; source: SourceRow }) {
     <div>
       <div className="px-5 py-4">
         <div className="flex items-center gap-2">
-          <Code>{source.code}</Code>
+          <EvidenceTag>{source.code}</EvidenceTag>
           <span className="text-[10.5px] uppercase tracking-wide text-muted-foreground">{source.kind}</span>
         </div>
-        <h3 className="rt-heading mt-1 text-[16px]">{source.title}</h3>
-        <div className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11.5px]">
-          {Object.entries(source.provenance).map(([k, v]) => (
-            <ProvRow key={k} k={k} v={String(v)} />
-          ))}
-          <ProvRow k="ingested by" v={source.createdBy === "human" ? "investigator" : source.createdBy} />
-          <ProvRow k="sha-256" v={source.contentHash.slice(0, 16) + "…"} mono />
-        </div>
-        <p className="mt-2 text-[11px] text-muted-foreground">Original content as ingested. Interpretations are stored separately and never modify it.</p>
+        <h3 className="rt-heading mt-1 text-[18px] leading-snug">{source.title}</h3>
+        <details className="mt-3">
+          <summary className="cursor-pointer text-[12.5px] text-muted-foreground">Source details</summary>
+          <div className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[12.5px]">
+            {Object.entries(source.provenance).map(([k, v]) => (
+              <ProvRow key={k} k={k} v={String(v)} />
+            ))}
+            <ProvRow k="ingested by" v={source.createdBy === "human" ? "investigator" : source.createdBy} />
+            <ProvRow k="sha-256" v={source.contentHash.slice(0, 16) + "…"} mono />
+          </div>
+          <p className="mt-2 text-[12px] text-muted-foreground">Original content as ingested. Interpretations are stored separately and never modify it.</p>
+        </details>
       </div>
       <div className="border-t border-border">
         {source.kind === "image" ? (
@@ -143,14 +148,14 @@ function TextWithMarks({
     if (r.start > at) parts.push(content.slice(at, r.start));
     const active = r.key === highlight;
     parts.push(
-      <mark key={i} data-active={active} ref={active ? (el) => void (activeRef.current = el) : undefined} onClick={() => onPick(r.key)} className="cursor-pointer">
+      <button key={i} type="button" data-active={active} ref={active ? (el) => void (activeRef.current = el) : undefined} onClick={() => onPick(r.key)} className="rt-source-mark">
         {content.slice(r.start, r.end)}
-      </mark>,
+      </button>,
     );
     at = r.end;
   });
   parts.push(content.slice(at));
-  return <pre className="rt-source-text rt-mono whitespace-pre-wrap break-words px-5 py-4 text-[11.5px] leading-[1.7] text-foreground/90">{parts}</pre>;
+  return <div className="rt-source-text mx-auto max-w-[68ch] whitespace-pre-wrap break-words px-6 py-6 text-foreground/90">{parts}</div>;
 }
 
 function RecordsTable({ source, rows, highlight, activeRef }: { source: SourceRow; rows: Map<number, string[]>; highlight: string | null; activeRef: React.MutableRefObject<HTMLElement | null> }) {
@@ -167,7 +172,7 @@ function RecordsTable({ source, rows, highlight, activeRef }: { source: SourceRo
   }, [source.content]);
   return (
     <div className="overflow-auto">
-      <table className="rt-mono w-full text-[10.5px]">
+      <table className="rt-mono w-full text-[12.5px]">
         <thead className="sticky top-0 bg-card">
           <tr>
             <th className="px-2 py-1.5 text-left text-muted-foreground">#</th>
@@ -204,7 +209,7 @@ function ImageWithRegions({ source, ws }: { source: SourceRow; ws: Workspace }) 
   const regions = ws.artifacts.flatMap((a) => a.citations.filter((c) => c.sourceId === source.id && c.region).map((c) => ({ a, r: c.region! })));
   return (
     <div className="relative mx-5 my-4">
-      <img src={source.content} alt={source.title} className="w-full rounded-[3px]" />
+      <img src={source.content} alt={source.title} className="rt-frame w-full rounded-[3px]" />
       {regions.map(({ a, r }, i) => (
         <button key={i} onClick={() => set({ sel: a.id })} className="absolute border-[1.5px] border-primary bg-[hsl(var(--primary)/0.08)]" style={{ left: `${r.x * 100}%`, top: `${r.y * 100}%`, width: `${r.w * 100}%`, height: `${r.h * 100}%` }}>
           <span className="rt-mono absolute -top-4 left-0 rounded-sm bg-primary px-1 text-[9.5px] text-primary-foreground">{a.code}</span>
@@ -253,10 +258,10 @@ function ArtifactView({ ws, a }: { ws: Workspace; a: ArtifactRow }) {
     <div>
       <div className="px-5 py-4">
         <div className="flex flex-wrap items-center gap-2">
-          <Code>{a.code}</Code>
+          <EvidenceTag>{a.code}</EvidenceTag>
           <EpistemicMark value={a.epistemic} withLabel />
           <StatusTag status={a.status} actor={a.createdBy} />
-          {standing ? <StandingTag standing={standing} /> : null}
+          {standing ? <StandingTag standing={standing} unsupported={standing === "supported" && !links.some((l) => l.toId === a.id && l.relation === "supports" && l.status !== "rejected")} /> : null}
           <span className="text-[10.5px] text-muted-foreground">by</span>
           <ActorTag actor={a.createdBy} />
           {a.confidence !== null ? <span className="rt-mono text-[10.5px] text-muted-foreground">confidence {a.confidence}</span> : null}
@@ -376,6 +381,7 @@ function NewLinkForm({ ws, fromId }: { ws: Workspace; fromId: string }) {
   if (!open) {
     return (
       <Btn size="sm" onClick={() => setOpen(true)}>
+        <Link2Icon />
         Connect to…
       </Btn>
     );
@@ -420,9 +426,11 @@ function NewLinkForm({ ws, fromId }: { ws: Workspace; fromId: string }) {
       </label>
       <div className="flex gap-2">
         <Btn size="sm" tone="primary" disabled={!to || !rationale.trim() || link.pending} onClick={submit}>
+          <Link2Icon />
           Connect
         </Btn>
         <Btn size="sm" tone="ghost" onClick={() => setOpen(false)}>
+          <Cross2Icon />
           Cancel
         </Btn>
       </div>
@@ -434,7 +442,12 @@ function Decide({ ws, target, kind }: { ws: Workspace; target: ArtifactRow | Lin
   const [pending, setPending] = useState<ArtifactStatus | null>(null);
   const [reason, setReason] = useState("");
   const revise = useRtAction(kind === "artifact" ? "revise-artifact" : "revise-link");
+  const acceptOne = useRtAction("accept-artifacts");
   const assess = useRtAction("assess-hypothesis");
+  const accept = () =>
+    kind === "artifact"
+      ? acceptOne.run({ investigationId: ws.investigation.id, refs: [target.id], reason: "Investigator accepted" })
+      : revise.run({ investigationId: ws.investigation.id, ref: target.id, status: "accepted", reason: "Investigator accepted" });
   const isHyp = kind === "artifact" && (target as ArtifactRow).type === "hypothesis";
   const [standing, setStanding] = useState<Standing | null>(null);
 
@@ -457,21 +470,17 @@ function Decide({ ws, target, kind }: { ws: Workspace; target: ArtifactRow | Lin
   ];
 
   return (
-    <div className="grid gap-2">
-      <div className="flex flex-wrap gap-1.5">
-        {options.map((o) => (
-          <Btn key={o.s} size="sm" tone={pending === o.s ? "primary" : o.tone === "critical" ? "critical" : "quiet"} onClick={() => (o.s === "accepted" ? revise.run({ investigationId: ws.investigation.id, ref: target.id, status: "accepted", reason: "Investigator accepted" }) : (setStanding(null), setPending(o.s)))}>
-            {o.label}
-          </Btn>
-        ))}
-        {isHyp
-          ? (["supported", "weakened", "contradicted", "refuted"] as Standing[]).map((s) => (
-              <Btn key={s} size="sm" tone={standing === s ? "primary" : "ghost"} onClick={() => (setPending(null), setStanding(s))}>
-                {s}
-              </Btn>
-            ))
-          : null}
-        <Btn
+    <div className="grid gap-3">
+      <div>
+        <Kicker className="mb-1.5">Review</Kicker>
+        <div className="flex flex-wrap gap-1.5">
+          {options.map((o) => (
+            <Btn key={o.s} size="sm" tone={pending === o.s ? "primary" : o.tone === "critical" ? "critical" : "quiet"} onClick={() => (o.s === "accepted" ? void accept() : (setStanding(null), setPending(o.s)))}>
+              {o.s === "accepted" ? <CheckIcon /> : null}
+              {o.label}
+            </Btn>
+          ))}
+          <Btn
           size="sm"
           tone="ghost"
           onClick={() =>
@@ -482,13 +491,30 @@ function Decide({ ws, target, kind }: { ws: Workspace; target: ArtifactRow | Lin
             })
           }
         >
+          <ChatBubbleIcon />
           Ask agent to investigate
         </Btn>
+        </div>
       </div>
+      {isHyp ? (
+        <div>
+          <Kicker className="mb-1.5" title="Assessment against linked evidence. Recording a standing does not accept the hypothesis.">
+            Evidence standing
+          </Kicker>
+          <div className="flex flex-wrap gap-1.5">
+            {(["supported", "weakened", "contradicted", "refuted"] as Standing[]).map((s) => (
+              <Btn key={s} size="sm" tone={standing === s ? "primary" : "ghost"} onClick={() => (setPending(null), setStanding(s))}>
+                {s}
+              </Btn>
+            ))}
+          </div>
+        </div>
+      ) : null}
       {pending || standing ? (
         <div className="rt-arrive flex gap-2">
           <input autoFocus value={reason} onChange={(e) => setReason(e.target.value)} onKeyDown={(e) => e.key === "Enter" && commit()} placeholder="Reason (kept in history)" className={inputClass} />
           <Btn size="sm" tone="primary" onClick={commit}>
+            <Pencil1Icon />
             Record
           </Btn>
         </div>
@@ -515,6 +541,56 @@ function HistoryList({ entries }: { entries: Workspace["activity"] }) {
   );
 }
 
+function AssumptionView({ ws, a }: { ws: Workspace; a: AssumptionRow }) {
+  const retire = useRtAction("retire-assumption");
+  const minutes = Number(a.value.aheadMinutes);
+  const humanTouched = ws.activity.some((h) => h.actor === "human" && h.targetIds.includes(a.id));
+  const agentProposal = a.createdBy === "agent" && !humanTouched;
+  return (
+    <div>
+      <div className="px-5 py-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <EvidenceTag>{a.code}</EvidenceTag>
+          <span className={cn("text-[10.5px] font-semibold uppercase tracking-[0.06em]", agentProposal ? "text-[hsl(var(--rt-evidence))]" : "text-muted-foreground")}>
+            {agentProposal ? "Agent proposal" : a.createdBy === "human" ? "Investigator" : "Active"}
+          </span>
+          {agentProposal ? <span className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-[hsl(var(--rt-unresolved))]">Review required</span> : null}
+        </div>
+        <h3 className="rt-heading mt-2 text-[18px] leading-snug">{a.label}</h3>
+        {a.kind === "clock_offset" && Number.isFinite(minutes) ? (
+          <div className="mt-3">
+            <Kicker>Offset in use</Kicker>
+            <p className="rt-mono mt-1 text-[22px] leading-none">{minutes === 0 ? "0 min" : `${minutes > 0 ? "fast" : "slow"} ${Math.abs(minutes)} min`}</p>
+            <p className="mt-2 max-w-prose text-[13px] leading-relaxed text-muted-foreground">
+              Recorded timestamps stay on the events. Corrected times already use this offset. Removing it restores recorded time.
+            </p>
+          </div>
+        ) : null}
+        {a.rationale ? <p className="mt-3 text-[13.5px] leading-relaxed">{a.rationale}</p> : null}
+      </div>
+      <Section title="Evidence">
+        <CitationList ws={ws} citations={a.citations} ownerId={a.id} />
+      </Section>
+      {a.active ? (
+        <Section title="Review">
+          <Btn
+            tone="critical"
+            disabled={retire.pending}
+            onClick={() => retire.run({ investigationId: ws.investigation.id, ref: a.id, reason: "Investigator removed the correction" })}
+          >
+            <Cross2Icon />
+            Remove correction
+          </Btn>
+        </Section>
+      ) : (
+        <Section title="Review">
+          <p className="text-[13px] text-muted-foreground">This assumption is retired. Corrected times no longer use it.</p>
+        </Section>
+      )}
+    </div>
+  );
+}
+
 // ---------- link ----------
 
 function LinkView({ ws, l }: { ws: Workspace; l: LinkRow }) {
@@ -527,7 +603,7 @@ function LinkView({ ws, l }: { ws: Workspace; l: LinkRow }) {
     <div>
       <div className="px-5 py-4">
         <div className="flex items-center gap-2">
-          <Code>{l.code}</Code>
+          <EvidenceTag>{l.code}</EvidenceTag>
           <StatusTag status={l.status} actor={l.createdBy} />
           <span className="text-[10.5px] text-muted-foreground">by</span>
           <ActorTag actor={l.createdBy} />

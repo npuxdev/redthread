@@ -1,0 +1,6 @@
+time_PDT,event,carton,operator,details
+2026-10-20 15:20:00,scale exception override,C08,OP-12,Supervisor override; reason damaged display
+2026-10-20 15:21:00,scale exception override,C09,OP-12,Supervisor override; reason damaged display
+2026-10-20 15:23:00,label reprint,C08,OP-12,Reprinted tracking label; original scan void
+2026-10-20 15:24:00,label reprint,C09,OP-12,Reprinted tracking label; original scan void
+2026-10-20 15:29:00,truck handoff,SO-4811,OP-12,10 labeled cartons; seal intact visually; no item count

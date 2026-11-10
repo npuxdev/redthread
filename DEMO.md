@@ -22,10 +22,10 @@ Point out:
 
 ## 2. The investigator turns the instrument (about 1.5 min)
 
-In the chronology, find the Camera 04 clock control on the left.
+In the chronology, open **Time analysis** and find the Camera 04 clock.
 
-- If the agent applied the 11-minute offset, set it to **0** and apply with a reason ("testing the director's account on raw time"). The orderings re-sort. Under raw time the case looks empty only after the lights failed and after the guard entered, which is the director's story.
-- Set it back to **11 fast**. The orderings flip: the case is empty at 21:04 corrected, before the 21:12 outage and before the guard's badge at 21:09. Violated orderings are drawn in oxide. That red line is the only red in the UI, and it appears only because the evidence put it there.
+- If the agent applied the 11-minute offset, set it to **0** and apply with a reason ("testing the director's account on raw time"). Switch back to **Sequence**. Under raw time the case looks empty only after the lights failed and after the guard entered, which is the director's story.
+- Set it back to **11 fast**. The sequence reorders: the case is empty at 21:04 corrected, before the 21:12 outage and before the guard's badge at 21:09. Open **Relationships** to see the asserted orderings. Violated ones are marked in oxide. That is the only red in the UI, and it appears only because the evidence put it there.
 - The "Your changes" strip shows the edit and the hypotheses it touched. Press **Reassess**.
 
 What a good reassessment says:

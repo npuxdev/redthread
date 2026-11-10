@@ -24,8 +24,9 @@ Read `.agents/skills/investigation/SKILL.md` before investigating. It holds the 
 
 ## Application state
 
-- `navigation`: `{ view: "investigation", investigationId, instrumentId?, selectedId? }` on `/i/<id>`; `{ view: "home" }` on `/`.
-- Use `navigate` with `path: "/i/<id>?instrument=<instrumentId>"` to bring an instrument you constructed into view.
+- `navigation`: `{ view: "investigation", investigationId, instrumentId?, selectedId?, chronologyMode?, chronologySpan?, chronologyScope? }` on `/i/<id>`; `{ view: "home" }` on `/`.
+- On Home, `view-screen` also lists `investigations` (`id`, `title`, `question`, `status`) and `evidenceCollections` (`slug`, `title`, `sourceCount`).
+- Use `navigate` with `path: "/i/<id>?instrument=<instrumentId>"` to bring an instrument you constructed into view. On a chronology, add `chrono=relationships` or `chrono=time`, `scope=important`, and `span=<id-or-code>,<id-or-code>` to show asserted orderings, clock corrections, significant events, or the sequence between two events.
 
 ## Actions
 
@@ -42,3 +43,5 @@ Read `.agents/skills/investigation/SKILL.md` before investigating. It holds the 
 | `assess-hypothesis` | Record a hypothesis's standing and why |
 | `get-unreviewed-changes` / `mark-changes-reviewed` | The investigator's changes and their impact |
 | `get-report` / `write-reconstruction` | Evidence-grounded reconstruction |
+| `delete-investigation` | Permanently remove one investigation and everything recorded in it. The evidence collection it was opened from stays on Home. Argument: `investigationId`. Only when the investigator asks to delete it. Then confirm that id is absent from `list-investigations`. |
+| `delete-case` | Permanently remove one evidence collection so it disappears from Home. Investigations already opened from it stay listed. Argument: `slug`. Only when the investigator asks to delete it. Then confirm that slug is absent from `view-screen` on Home. |

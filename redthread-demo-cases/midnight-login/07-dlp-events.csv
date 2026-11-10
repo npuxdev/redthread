@@ -1,0 +1,2 @@
+event_id,time_PDT,session,source_ip,dest_domain,file,bytes,policy_result
+DLP-88,2026-10-19 00:13:50,sess-web-19,198.51.100.77,fileshare.partner-example.invalid,brief-v4.pdf,458193,alert-only

@@ -1,0 +1,5 @@
+time_PDT,tracking,event,location,cartons,exception
+2026-10-20 15:31:00,CT-9802,depart origin,Cedar Supply,10,none
+2026-10-20 20:40:00,CT-9802,arrive sort center,Ontario Hub,10,none
+2026-10-21 07:18:00,CT-9802,out for delivery,Ontario Hub,10,none
+2026-10-21 10:11:00,CT-9802,delivered,Harbor Retail,10,none

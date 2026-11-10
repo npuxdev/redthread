@@ -1,0 +1,7 @@
+SECURITY OPERATIONS — INCIDENT REFERRAL IR-284
+Created: 2026-10-19 08:40 PDT | Analyst: T. Morgan
+Subject: Maya Chen, Product Operations
+
+At 00:14:30 on October 19, the SecureGate audit console raised an alert on a read operation against the restricted /meridian/acquisition directory attributed to maya.chen@northstar.example. A second alert at 00:24:50 concerned an outbound upload from the same user account. The director requested confirmation that Ms. Chen accessed files personally after leaving the building. The console lists event timestamps but does not itself establish which human operated a credential.
+
+Requested determination: separate the two alerts, establish the ordering of automated and interactive activity, and identify what further evidence is required.

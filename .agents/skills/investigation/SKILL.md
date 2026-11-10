@@ -13,7 +13,7 @@ description: >-
 1. `get-investigation` — read the question and the list of sources.
 2. `get-source` for each text/records source. Read fully. For image sources, look with `inspect-source-image` (see §1a).
 3. `record-artifacts` in batches of roughly 5–15 items per call:
-   - **events** for anything that happened at a recorded time. `attrs.sourceTime` is the time *as the source records it* (do not correct it yourself). `attrs.clockKey` names the clock that produced it — the device, system, or document series. Two events share a clockKey only if the same clock stamped them. Add `uncertaintyMin` when a source gives an approximate time ("around", "about", handwritten).
+   - **events** for anything that happened at a recorded time. `label` names the happening in ordinary language, not a column or field name. `body` is a short description of what the source records. `attrs.sourceTime` is the time *as the source records it* (do not correct it yourself). `attrs.clockKey` names the clock that produced it — the device, system, or document series. Two events share a clockKey only if the same clock stamped them. Add `uncertaintyMin` when a source gives an approximate time ("around", "about", handwritten).
    - **entities** for people, objects, places, identifiers that recur.
    - **claims** for assertions a source makes (statements, signed declarations, reported facts). Claims by an interested party are `interpretation` unless independently recorded.
    - **observations** only for what the source itself directly records.
@@ -39,14 +39,16 @@ Ask what would let the investigator *test* the question, then pick the instrumen
 
 | Evidence characteristic | Method | Bind |
 | --- | --- | --- |
-| Times from more than one clock, or an ordering a hypothesis depends on | `chronology` | the relevant events; clock_offset assumptions if any |
+| The order of events, or a disagreement between clocks, would change the answer | `chronology` | the relevant events; clock_offset assumptions if any |
 | Two or more record sets that should describe the same items via an identifier | `record_reconciliation` | `params.sides: [{sourceId, keyField}]` |
 | Two or more images that may depict the same subject | `visual_comparison` | the image sources |
 | None of these express the needed test | `generated` | see §5 |
 
 State the instrument's `question` (what it answers) and `rationale` (why this method fits this evidence). One well-chosen instrument beats several decorative ones. After constructing, `navigate` to `/i/<investigationId>?instrument=<instrumentId>`.
 
-If a source documents that a clock is inaccurate, you may *propose* a `clock_offset` assumption citing it — but say clearly that it is an interpretation, and let the investigator adjust it in the chronology.
+Do not construct a chronology merely because some fields contain timestamps. The default view is one sequence ordered by corrected time: each row is an event title, its time, a short description, and its source. Clock keys stay on the event; they are not row titles. Adjust offsets in Time analysis with `chrono=time`. Asserted `precedes` links are under Relationships with `chrono=relationships`. To frame the sequence between two events, add `span=<id-or-code>,<id-or-code>`. A missing interval is a question you record and link to the events around it; the sequence shows that question as unresolved. Do not describe the absence as something that did not occur.
+
+If a source documents that a clock is inaccurate, you may *propose* a `clock_offset` assumption citing it — but say clearly that it is an interpretation, and let the investigator adjust it in the chronology's Time analysis view.
 
 ## 3. Respond to investigator changes
 

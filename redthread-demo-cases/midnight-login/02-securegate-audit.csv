@@ -1,0 +1,4 @@
+event_id,device_time_PDT,principal,session_id,source_host,operation,object,result
+SG-4401,2026-10-19 00:14:30,maya.chen@northstar.example,sess-auto-81,build-runner-03,READ,/meridian/acquisition/brief-v4.pdf,success
+SG-4402,2026-10-19 00:15:02,maya.chen@northstar.example,sess-auto-81,build-runner-03,READ,/meridian/acquisition/forecast.csv,success
+SG-4403,2026-10-19 00:24:50,maya.chen@northstar.example,sess-web-19,unknown-external,EXPORT,/meridian/acquisition/brief-v4.pdf,success
