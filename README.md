@@ -164,3 +164,17 @@ Scored against its sealed key:
   - **October (S-12):** no fracture, warm exhibition tint and vignette.
 - **CCTV still (S-04):** AI-generated, with a burned-in device clock added locally.
 - **Answer keys** (`cases/_*-key/ANSWER.md`) are for scoring only. The app never loads them.
+
+## License
+
+Copyright © 2026 Nicholas Pulido. All rights reserved.
+
+REDTHREAD is publicly available for inspection and portfolio
+demonstration. Public availability does not grant permission to
+reproduce, modify, redistribute, or commercially use the original
+code.
+
+Third-party dependencies retain their respective licenses.
+
+For commercial licensing or collaboration inquiries,
+contact the author.
