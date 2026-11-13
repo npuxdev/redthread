@@ -4,7 +4,7 @@ An investigative workbench built on [Agent-Native](https://agent-native.com). A 
 
 The agent knows nothing about any particular case. Everything it knows comes from sources it reads through actions, and every claim it records cites a verbatim quote, a record row or an image region.
 
-See [DEMO.md](DEMO.md) for a five-minute walkthrough of one case, and [Quick start](#quick-start) below for the interface.
+See [DEMO.md](DEMO.md) for a five-minute walkthrough of one case, [Quick start](#quick-start) below for the interface, and [agents-review.md](agents-review.md) for a technical assessment of the implementation.
 
 ## Setup
 
@@ -29,6 +29,17 @@ OPENAI_API_KEY=sk-...
 
 `pnpm dev` signs you in automatically on localhost, so there is no login step. Do not set `AUTH_DISABLED` on anything reachable by others; the server refuses to start with it outside development. The database is a local PGlite store at `data/pglite`, created the first time the server starts. Nothing else has to be installed.
 
+The loader reads `cases/<slug>/case.json`, or `REDTHREAD_CASES_DIR` if that is set. This checkout ships three fictional collections under `redthread-demo-cases/`. Copy them into `cases/` before they appear on Home:
+
+```bash
+mkdir -p cases
+cp -R redthread-demo-cases/midnight-login cases/
+cp -R redthread-demo-cases/missing-40-units cases/
+cp -R redthread-demo-cases/conflicting-statements cases/
+```
+
+`cases/_holdout-key/` and `cases/_eleven-minute-lie-key/` are scoring notes. Names that start with `_` are not loadable slugs, and the app does not read them. Do not point `REDTHREAD_CASES_DIR` at a folder that also contains those notes if an agent can read the filesystem.
+
 ```bash
 pnpm dev
 ```
@@ -38,18 +49,22 @@ That starts the app and opens http://localhost:8080. Use a vision-capable model 
 Other commands:
 
 ```bash
-pnpm test        # engine, vision and architectural-isolation tests
+pnpm test        # 64 tests: engine, citations, CSV, batches, loader, trust, presentation
 pnpm typecheck
-pnpm action <name> --flag value   # call any action from the CLI, e.g. load-case --slug eleven-minute-lie
+pnpm action <name> --flag value   # call any action from the CLI, e.g. load-case --slug midnight-login
 ```
 
 Built on `@agent-native/core`, `agentkit` and `toolkit` **0.226.0**, from the `chat` template.
 
 ## Quick start
 
-The screenshots are from one worked investigation. The same layout is what you get after opening any collection or starting your own.
+The screenshots are the running app on one local investigation, **Northstar Industrial Supply**. The invoice and purchase order in that investigation label the company fictional. Its source files live in the local database only. They are not in this repository, so a fresh clone will not reproduce these screens until that evidence is loaded again. The layout — question, sources, instrument, co-investigator — is the same workbench any collection uses.
 
-**Home.** Start a new investigation with a title, the question you want answered, and the files that are the evidence (text, CSV or JSON records, and images). Or open an evidence collection that is already on disk. Collections live under `cases/<slug>/`. Inside an investigation, **More → Reset investigation…** deletes that investigation and reloads its collection fresh.
+The dollar amounts on screen are cited findings and record fields. The reconciliation instrument matches payment identifiers. It does not sum or round money.
+
+**Home.** Start a new investigation with a title, the question, and the files that are the evidence (text, CSV or JSON records, and images). Collections appear here only after they are copied into `cases/`. This checkout's `cases/` directory holds scoring notes, so Home lists no collections until the copy above. Inside an investigation, **More → Reset investigation…** deletes that investigation and reloads its collection fresh.
+
+![Home, with a new-investigation form and one reported local investigation](docs/screenshots/home.png)
 
 **The workbench.** The question stays at the top. Sources sit on the left, the analytical instrument in the center, and the co-investigator on the right. Cited sources are marked so you can see what the agent has actually used. Ask it to examine the evidence, or press **Examine the evidence** when the stage is empty. It reads the sources, records cited findings, and builds an instrument such as this chronology.
 
@@ -59,7 +74,11 @@ The screenshots are from one worked investigation. The same layout is what you g
 
 ![Hypotheses listed by standing beside a chronology relationships view](docs/screenshots/hypotheses-and-relationships.png)
 
-**Review.** The agent proposes. You decide what is established. **Review** opens everything still waiting: items that need a judgement, then routine findings you can accept together. Accepting a finding marks it established in the report. Provisional findings already inform the instruments either way.
+**Record reconciliation.** Two record sources that share an identifier can be matched, left unmatched, or flagged as a near match (formatting, one edit, or a confusable character). The investigator can pair rows by hand. The match is on the key. It does not compute a numeric difference between amounts.
+
+![Reconciliation of ERP payment rows against bank disposition rows, matched on payment id](docs/screenshots/reconciliation.png)
+
+**Review.** The agent proposes. You decide what is established. **Review** opens everything still waiting: items that need a judgement, then routine findings you can accept together. Accepting a finding marks it established in the report. Provisional findings already inform the instruments either way. A wording check can ask for a judgement when the finding's words are not in the cited text. It is a prompt, not a proof, and grouped amounts such as `$38,400` can be split into separate tokens.
 
 ![Review drawer listing findings that need a judgement, each with Accept](docs/screenshots/review.png)
 
@@ -67,7 +86,9 @@ The screenshots are from one worked investigation. The same layout is what you g
 
 ![History panel showing successive hypothesis assessments with their reasons](docs/screenshots/history.png)
 
-**Report** writes up what is established, what is inferred, and what is still open. Each line cites the findings it relies on.
+**Report.** The findings report is assembled from current state. Accepted observations are the only items under "Established by evidence." A reconstruction, when one has been written, is the agent's prose and is labeled with who wrote it. A heading inside that prose is not the system's acceptance status.
+
+![Findings report with a reconstruction and the sources it cites](docs/screenshots/report.png)
 
 ## How it is put together
 
@@ -104,11 +125,21 @@ The screenshots are from one worked investigation. The same layout is what you g
   Either way, nothing in a failed call is saved.
 - **Smallest general implementation.** Three built-in instrument kinds plus generated extensions, rather than many bespoke panels.
 
-## Test results
+## Checks run against this checkout
 
-All runs used the unchanged app. Any fix went into general capability, and both earlier cases were retested afterwards.
+On 13 November 2026, on top of commit `f42b575`:
 
-**Automated:** 21 tests (engine, vision, isolation) pass; typecheck is clean.
+- `pnpm test`: 64 tests, 10 files, all passed. The run used a temporary database, not the local investigation store.
+- `pnpm typecheck`: passed after one indexed read in `app/components/rt/CoInvestigator.tsx` was given an explicit string fallback. Before that change, typecheck failed under `noUncheckedIndexedAccess`.
+- There is no ESLint script. Formatting is Oxfmt (`.oxfmtrc.json`); it is not a separate `pnpm` script.
+- There is no CI workflow in the repository.
+- `pnpm build` exited 0 and wrote a Nitro node bundle under `.output/`. During that build, Agent-Native printed production configuration errors: the local environment has `AUTH_DISABLED` set, and `BETTER_AUTH_SECRET` and a persistent `DATABASE_URL` are unset. `agent-native.json` sets `doctor.failOnBuild` to false, so doctor findings did not fail the build. Those findings are unscoped investigation tables and `REDTHREAD_CASES_DIR` being read from the environment. This repository has not been deployed.
+
+## Recorded model evaluation
+
+The notes below were written during development and committed with the project. They were not re-run for this review. The three collections they describe were removed from the working tree in `3b174a8` and remain in Git history. Scoring keys for two of them are still in `cases/`. A fresh checkout does not contain those source files at HEAD.
+
+**Automated, as originally written:** the engine, vision, and isolation tests passed and typecheck was clean. The count at that time was 21 tests. The suite is now 64 tests, after `f42b575` added batch, CSV, loader, support, and trust coverage.
 
 **Development case, `pump-seal-failures`:** reconciliation of a production genealogy against field failures. A rerun after the generalisation fixes reached consistent conclusions with 1 failed tool call.
 
@@ -153,7 +184,7 @@ Scored against its sealed key:
 - Model runs vary. Wording, and the order in which the agent works, change between runs. Coverage of minor sources is not guaranteed in a single pass, so a follow-up prompt may be needed to bring them in.
 - Image inspection depends on a vision-capable provider. Without one, the framework drops the image from the tool result. The result text then tells the model not to describe the image and to say a vision model is needed. This path was not tested live.
 - The agent can only describe what is visible at the resolution supplied. It records absence as "not visible at this resolution", not as proof.
-- Local single-user setup (PGlite, auth disabled). Multi-user sharing and production deployment were not part of this build.
+- Local single-user setup (PGlite). `pnpm dev` signs in on localhost. `AUTH_DISABLED` is optional and is refused outside development. Multi-user sharing and production deployment were not part of this build.
 - The template's server-rendered skeleton briefly flashes before hydration.
 
 ## Assets

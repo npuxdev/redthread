@@ -1,6 +1,8 @@
 # REDTHREAD demo script
 
-About five minutes. Uses the "The Eleven-Minute Lie" case. Model runs vary in wording and in the order the agent does things. The beats below describe what to look for, not exact output.
+This script walks through **The Eleven-Minute Lie**. That collection is not in the working tree. It was removed in `3b174a8` and is still in Git history at the parent of that commit. The scoring key remains at `cases/_eleven-minute-lie-key/ANSWER.md`. To run a collection that is in this checkout, copy one from `redthread-demo-cases/` into `cases/` as described in the README. Those three collections were not the subject of this script.
+
+About five minutes, when the Eleven-Minute Lie sources are present. Model runs vary in wording and in the order the agent does things. The beats below describe what to look for, not exact output.
 
 ## Before you start
 

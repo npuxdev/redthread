@@ -40,7 +40,7 @@ function useWorkingPhrase(active: boolean) {
     const id = window.setInterval(() => setIndex((i) => (i + 1) % WORKING_PHRASES.length), 2400);
     return () => window.clearInterval(id);
   }, [active]);
-  return WORKING_PHRASES[index] ?? WORKING_PHRASES[0];
+  return WORKING_PHRASES[index] ?? "Reading the record";
 }
 
 function WorkingPhrase({ phrase }: { phrase: string }) {
