@@ -6,9 +6,9 @@ REDTHREAD is an investigative workbench. A person brings sources and a question.
 
 The domain is investigation, not portfolio management. The transferable work is a data-dense analytical interface, explicit handling of time and record identity, and a hard boundary between model output and accepted fact.
 
-## WCM alignment
+## What the code demonstrates
 
-WCM's senior front-end / UX bar, as stated for this review, asks for React and Next.js, complex data interfaces, numerical trust, product design, performance, AI workflows with human oversight, independent ownership, and production credibility. Equivalent technologies are counted. Missing technologies are not described as present.
+The ratings below cover React, complex data interfaces, numerical trust, product design, performance, AI workflows with human oversight, independent ownership, and production credibility. Equivalent technologies are counted. Missing technologies are not described as present.
 
 | Area | Rating | What the repository actually shows |
 | --- | --- | --- |
@@ -144,4 +144,4 @@ Worth walking through on a whiteboard or in the file:
 5. Either ship the Northstar sources as a fictional collection or say, as the README now does, that the screenshots are a local session. A reviewer who clones and looks for that case will not find it.
 6. Do not describe the held-out shipment as sealed. The key is in the tree and the sources are in history.
 
-None of those require a new framework or a WCM-specific feature. They are unfinished edges of the system that is already here.
+None of those require a new framework. They are unfinished edges of the system that is already here.
