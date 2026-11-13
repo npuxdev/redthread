@@ -4,7 +4,7 @@ An investigative workbench built on [Agent-Native](https://agent-native.com). A 
 
 The agent knows nothing about any particular case. Everything it knows comes from sources it reads through actions, and every claim it records cites a verbatim quote, a record row or an image region.
 
-See [DEMO.md](DEMO.md) for a five-minute walkthrough of one case, [Quick start](#quick-start) below for the interface, and [agents-review.md](agents-review.md) for a technical assessment of the implementation.
+See [DEMO.md](DEMO.md) for a five-minute walkthrough of one case, and [Quick start](#quick-start) below for the interface.
 
 ## Setup
 
